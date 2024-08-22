@@ -29,8 +29,8 @@ class AboutUs(models.Model):
 
 
 class AboutUsGallery(models.Model):
-    image = models.OneToOneField("common.Media", blank=True, null=True, on_delete=models.SET_NULL)
-    about_us = models.OneToOneField(AboutUs, on_delete=models.CASCADE, related_name='about_us')
+    image = models.ForeignKey("common.Media", blank=True, null=True, on_delete=models.SET_NULL)
+    about_us = models.OneToOneField(AboutUs, on_delete=models.CASCADE, related_name='galleries')
 
     def __str__(self):
         return f"{self.about_us}-{self.image.file.url}"

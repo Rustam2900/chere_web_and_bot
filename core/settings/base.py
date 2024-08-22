@@ -51,6 +51,8 @@ LOCAL_APPS = [
 
 THIRD_PARTY_APPS = [
     'phonenumber_field',
+    'rest_framework',
+    'drf_spectacular',
 ]
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS
 
@@ -63,6 +65,31 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+
+    'DEFAULT_PERMISSION_CLASSES': [
+        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '5/day',
+        'user': '5/day'
+    }
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Cherri API',
+    'DESCRIPTION': 'Cherri ',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
+}
 
 ROOT_URLCONF = 'core.urls'
 
