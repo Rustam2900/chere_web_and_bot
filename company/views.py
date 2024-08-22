@@ -14,6 +14,7 @@ from .serializers import BannerListSerializer, AboutUsHomeSerializer, AboutUsSer
 
 class BannerListView(ListAPIView):
     serializer_class = BannerListSerializer
+    throttle_classes = []
 
     def get_queryset(self):
         banners = Banner.objects.all()
