@@ -1,5 +1,6 @@
 from django.contrib import admin
-from product.models import Product, ProductAttribute, WebOrder
+from product.models import Product, ProductAttribute, WebOrder, Discount
+
 
 class ProductAttributeInline(admin.StackedInline):
     model = ProductAttribute
@@ -11,3 +12,4 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WebOrder)
+admin.site.register(Discount)

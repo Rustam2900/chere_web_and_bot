@@ -35,3 +35,6 @@ class Media(models.Model):
         if not self.file.name.split('.')[-1] in allowed_extensions:
             raise ValidationError(
                 _('Invalid file extension for {}. Allowed: {}').format(self.type, ', '.join(allowed_extensions)))
+
+    def __str__(self):
+        return self.file.name

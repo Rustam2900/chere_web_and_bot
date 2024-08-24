@@ -9,6 +9,7 @@ class Product(models.Model):
     size = models.DecimalField(_('size'), max_digits=5, decimal_places=1, help_text=_('size in liters'))
     image = models.OneToOneField("common.Media", on_delete=models.CASCADE)
     price = models.DecimalField(_('price'), max_digits=10, decimal_places=2, default=0, help_text=_("price in so'm"))
+    quantity = models.PositiveIntegerField(_('quantity'), default=0)
     discount = models.ForeignKey("Discount", on_delete=models.CASCADE, related_name="products", blank=True, null=True)
 
     class Meta:
@@ -16,7 +17,7 @@ class Product(models.Model):
         verbose_name_plural = _("Products")
 
     def __str__(self):
-        return self.title
+        return f"{self.title} - {self.quantity}"
 
 
 class ProductAttribute(models.Model):
@@ -49,3 +50,6 @@ class Discount(models.Model):
     desc = models.TextField(_('description'))
     image = models.ForeignKey("common.Media", on_delete=models.CASCADE, related_name="images_discount")
     percentage = models.PositiveIntegerField(_('percentage'), default=0)
+
+    def __str__(self):
+        return self.title

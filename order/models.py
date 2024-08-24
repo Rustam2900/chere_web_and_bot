@@ -22,10 +22,11 @@ class Order(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='orders')
+    status = models.CharField(_("status"), max_length=20, choices=OrderStatus.choices, default=OrderStatus.CREATED)
     address = models.CharField(_('Address'))
     location = models.IntegerField(_("location"), null=True, blank=True)
-    status = models.CharField(_("status"), max_length=20, choices=OrderStatus.choices, default=OrderStatus.CREATED)
     phone_number = PhoneNumberField(_('Phone number'), max_length=20)
+    total_price = models.DecimalField(_("total price"), decimal_places=2, max_digits=10)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
