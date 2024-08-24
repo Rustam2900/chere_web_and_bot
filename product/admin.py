@@ -7,7 +7,7 @@ class ProductAttributeInline(admin.StackedInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductAttributeInline]
-    list_display = ('title', 'desc', 'size')
+    list_display = ('title', 'desc', 'size', 'price', 'discount')
 
 
 admin.site.register(WebOrder)
