@@ -52,9 +52,11 @@ LOCAL_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    'django',
     'phonenumber_field',
     'rest_framework',
     'drf_spectacular',
+    'rest_framework_simplejwt',
 ]
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS
 
@@ -69,7 +71,11 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
     'DEFAULT_PERMISSION_CLASSES': [
         # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
@@ -82,7 +88,8 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '5/day',
         'user': '5/day'
-    }
+    },
+
 }
 
 SPECTACULAR_SETTINGS = {
