@@ -5,9 +5,9 @@ from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveUpdateDe
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from order.models import CartItem, Order
+from order.models import CartItem, Order, OrderMinSum
 from order.serializer import AddToCartItemSerializer, CartItemListSerializer, RemoveCartItemViewSerializer, \
-    OrderCreateSerializer, OrderListSerializer
+    OrderCreateSerializer, OrderListSerializer, OrderMinSumSerializer
 from product.models import Product
 
 
@@ -100,3 +100,8 @@ class OrderCreateView(ListCreateAPIView):
                 item.is_visible = False
                 item.save()
         return Response({"status": "Заказ успешно создан"}, status=status.HTTP_201_CREATED)
+
+class OrderMinSumView(ListAPIView):
+    serializer_class = OrderMinSumSerializer
+    throttle_classes = []
+    queryset = OrderMinSum.objects.all()

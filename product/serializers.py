@@ -2,7 +2,7 @@ from attr import attributes
 from rest_framework import serializers
 
 from common.serializers import MediaURLSerializer
-from product.models import Product, WebOrder, ProductAttribute, Discount
+from product.models import Product, WebOrder, ProductAttribute, Action
 
 
 class ProductHomeListSerializer(serializers.ModelSerializer):
@@ -35,16 +35,16 @@ class ProductAttributeSerializer(serializers.ModelSerializer):
         fields = ("title", "value")
 
 
-class DiscountSerializer(serializers.ModelSerializer):
+class ActionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Discount
+        model = Action
         fields = ("title", "desc", "image", "percentage")
 
 
 class ProductListSerializer(serializers.ModelSerializer):
     attributes = ProductAttributeSerializer(many=True, read_only=True)
-    discount = DiscountSerializer(read_only=True)
+    action = ActionSerializer(read_only=True)
 
     class Meta:
         model = Product
-        fields = ("id", "title", "price", "desc", "attributes", "discount")
+        fields = ("id", "title", "price", "desc", "attributes", "action")

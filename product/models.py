@@ -10,7 +10,8 @@ class Product(models.Model):
     image = models.OneToOneField("common.Media", on_delete=models.CASCADE)
     price = models.DecimalField(_('price'), max_digits=10, decimal_places=2, default=0, help_text=_("price in so'm"))
     quantity = models.PositiveIntegerField(_('quantity'), default=0)
-    discount = models.ForeignKey("Discount", on_delete=models.CASCADE, related_name="products", blank=True, null=True)
+    action = models.ForeignKey("Action", on_delete=models.CASCADE, related_name="products", blank=True, null=True)
+    discount_price = models.DecimalField(_("discount price"), max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         verbose_name = _("Product")
@@ -45,11 +46,15 @@ class WebOrder(models.Model):
         verbose_name_plural = _("Web Orders")
 
 
-class Discount(models.Model):
+class Action(models.Model):
     title = models.CharField(_('title'), max_length=255)
     desc = models.TextField(_('description'))
-    image = models.ForeignKey("common.Media", on_delete=models.CASCADE, related_name="images_discount")
+    image = models.OneToOneField("common.Media", on_delete=models.CASCADE, related_name="images_discount")
     percentage = models.PositiveIntegerField(_('percentage'), default=0)
+
+    class Meta:
+        verbose_name = _("Action")
+        verbose_name_plural = _("Action")
 
     def __str__(self):
         return self.title

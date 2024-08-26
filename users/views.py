@@ -1,4 +1,5 @@
 from django.contrib.auth.hashers import make_password
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -18,6 +19,7 @@ class UserRegistrationAPIView(CreateAPIView):
         hashed_password = make_password(password)
         serializer.save(password=hashed_password)
 
+    @extend_schema(parameters=[OpenApiParameter(name="type"), OpenApiParameter.QUERY])
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

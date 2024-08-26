@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from order.models import CartItem, Order
+from order.models import CartItem, Order, OrderMinSum
 from product.serializers import ProductListSerializer
 from product.views import ProductHomeListView
 
@@ -38,3 +38,7 @@ class OrderListSerializer(serializers.ModelSerializer):
         fields = ("id", "user", "phone_number", "status", "address", "location", "created_at")
 
 
+class OrderMinSumSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderMinSum
+        fields = ("id", "min_order_sum")

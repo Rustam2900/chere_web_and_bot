@@ -1,8 +1,8 @@
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.throttling import UserRateThrottle
 
-from product.models import Product, WebOrder, Discount
-from product.serializers import ProductHomeListSerializer, WebOrderSerializer, ProductListSerializer, DiscountSerializer
+from product.models import Product, WebOrder, Action
+from product.serializers import ProductHomeListSerializer, WebOrderSerializer, ProductListSerializer, ActionSerializer
 
 
 class ProductHomeListView(ListAPIView):
@@ -22,6 +22,6 @@ class ProductListView(ListAPIView):
 
 
 class DiscountListView(ListAPIView):
-    queryset = Discount.objects.all()
-    serializer_class = DiscountSerializer
+    queryset = Action.objects.all()
+    serializer_class = ActionSerializer
     throttle_classes = []

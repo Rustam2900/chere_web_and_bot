@@ -6,9 +6,10 @@ from users.models import CustomUser
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
+    user_type = serializers.ChoiceField(choices=CustomUser.UserType.choices)
     class Meta:
         model = CustomUser
-        fields = ('id', 'full_name', 'username', 'password')
+        fields = ('id', 'full_name', 'username', 'password', 'email', 'user_type')
         read_only_fields = ('id',)
 
 

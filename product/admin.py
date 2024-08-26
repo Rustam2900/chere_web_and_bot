@@ -1,5 +1,5 @@
 from django.contrib import admin
-from product.models import Product, ProductAttribute, WebOrder, Discount
+from product.models import Product, ProductAttribute, WebOrder, Action
 
 
 class ProductAttributeInline(admin.StackedInline):
@@ -8,8 +8,8 @@ class ProductAttributeInline(admin.StackedInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductAttributeInline]
-    list_display = ('title', 'desc', 'size', 'price', 'discount')
+    list_display = ('title', 'desc', 'size', 'price', 'action')
 
 
 admin.site.register(WebOrder)
-admin.site.register(Discount)
+admin.site.register(Action)
