@@ -1,16 +1,25 @@
 from django.contrib.auth.hashers import check_password
 from django.db.models import Q
 from rest_framework import serializers
-
 from users.models import CustomUser
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    user_type = serializers.ChoiceField(choices=CustomUser.UserType.choices)
+    user_type = serializers.ChoiceField(choices=CustomUser.UserType)
+
     class Meta:
         model = CustomUser
-        fields = ('id', 'full_name', 'username', 'password', 'email', 'user_type')
+        fields = ('id', 'full_name', 'username', 'password', 'email', 'user_type', 'company_name')
         read_only_fields = ('id',)
+
+    def validate(self, attrs):
+        user_type = attrs.get('user_type')
+        company_name = attrs.get('company_name')
+        if user_type == CustomUser.UserType.PRIVATE and not company_name:
+            raise serializers.ValidationError("Enter campaign name")
+        return attrs
+
+
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
@@ -41,5 +50,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = (
-        'id', 'full_name', 'username', 'email', 'first_name', 'last_name', 'phone_number', 'password', 'telegram_id',
-        'tg_username')
+            'id', 'full_name', 'username', 'email', 'first_name', 'last_name', 'phone_number', 'password',
+            'telegram_id',
+            'tg_username')

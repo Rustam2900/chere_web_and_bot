@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
-from rest_framework import status
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, inline_serializer
+from rest_framework import status, parsers, serializers
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,14 +13,16 @@ from users.serializers import UserRegisterSerializer, UserLoginSerializer, UserP
 class UserRegistrationAPIView(CreateAPIView):
     serializer_class = UserRegisterSerializer
     queryset = CustomUser.objects.all()
+    parser_classes = [parsers.MultiPartParser]
 
     def perform_create(self, serializer):
         password = serializer.validated_data.get('password')
         hashed_password = make_password(password)
         serializer.save(password=hashed_password)
 
-    @extend_schema(parameters=[OpenApiParameter(name="type"), OpenApiParameter.QUERY])
+
     def create(self, request, *args, **kwargs):
+        # return Response(status=status.HTTP_201_CREATED)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -40,7 +42,7 @@ class UserLoginAPIView(CreateAPIView):
             token = RefreshToken.for_user(user)
             data = serializer.data
             data["tokens"] = {"refresh": str(token), "access": str(token.access_token)}
-            return Response(data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
