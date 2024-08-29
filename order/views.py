@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from order.models import CartItem, Order, OrderMinSum
 from order.serializer import AddItemToCartSerializer, ListItemsFromCardViewSerializer, RemoveItemFromCartViewSerializer, \
-    OrderCreateSerializer, OrderListSerializer, OrderMinSumSerializer, RemoveCartSerializer
+    OrderCreateSerializer, OrderListSerializer, OrderMinSumSerializer, RemoveCartSerializer, OrderCancelSerializer
 from product.models import Product
 
 
@@ -76,36 +76,34 @@ class RemoveCart(CreateAPIView):
         qs = CartItem.objects.filter(user=request.user, is_visible=True).all()
         if qs:
             qs.delete()
-            return Response({"message": _("All items from the cart have been removed")}, status=status.HTTP_200_OK)
-        return Response({"message": _("Your cart is empty")}, status=status.HTTP_404_NOT_FOUND)
+            return Response({_("All items from the cart have been removed")}, status=status.HTTP_200_OK)
+        return Response({_("Your cart is empty")}, status=status.HTTP_404_NOT_FOUND)
 
 
-class OrderCreateView(ListCreateAPIView):
+class OrderCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     throttle_classes = []
     serializer_class = OrderCreateSerializer
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return OrderCreateSerializer
-        return OrderListSerializer
 
     def get_queryset(self):
         qs = Order.objects.filter(user=self.request.user).all()
         return qs
 
     def create(self, request, *args, **kwargs):
-        cart_items = CartItem.objects.filter(user=request.user,is_visible=True)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        cart_items = CartItem.objects.filter(user=request.user, id__in=serializer.validated_data['cart_items'],
+                                             is_visible=True)
         if not cart_items.exists():
-            return Response({"error": "Ваша корзина пуста. Добавьте товары перед оформлением заказа."},
+            return Response(data={_("Ваша корзина пуста. Добавьте товары перед оформлением заказа.")},
                             status=status.HTTP_404_NOT_FOUND)
         total_price = sum(item.product.price * item.quantity for item in cart_items)
 
         with transaction.atomic():
             order = Order.objects.create(
                 user=request.user,
-                address=request.data.get('address'),
-                phone_number=request.data.get('phone_number'),
+                address=serializer.validated_data['address'],
+                phone_number=serializer.validated_data['phone_number'],
                 status=Order.OrderStatus.CREATED,
                 total_price=total_price
             )
@@ -113,12 +111,45 @@ class OrderCreateView(ListCreateAPIView):
             for item in cart_items:
                 item.order = order
                 item.is_visible = False
+                item.product.quantity -= item.quantity
+                item.product.save()
                 item.save()
-        return Response({"status": "Заказ успешно создан"}, status=status.HTTP_201_CREATED)
+        return Response({_("Заказ успешно создан")}, status=status.HTTP_201_CREATED)
 
 
-class OrderCancelView(RetrieveUpdateDestroyAPIView):
-    pass
+class OrderListView(ListAPIView):
+    serializer_class = OrderListSerializer
+    permission_classes = [IsAuthenticated]
+    throttle_classes = []
+
+    def get_queryset(self):
+        qs = Order.objects.filter(user=self.request.user).all()
+        return qs
+
+
+class OrderCancelView(CreateAPIView):
+    serializer_class = OrderCancelSerializer
+    permission_classes = [IsAuthenticated]
+    throttle_classes = []
+
+    def create(self, request, *args, **kwargs):
+        order_id = kwargs.get('order_id')
+        try:
+            order = Order.objects.get(user=request.user, id=order_id)
+        except Order.DoesNotExist:
+            return Response(_("Заказ не найден"), status=status.HTTP_404_NOT_FOUND)
+        if order.status == Order.OrderStatus.CANCELLED:
+            return Response(_("Заказ уже отменен"), status=status.HTTP_400_BAD_REQUEST)
+
+        # Возврат количества товаров в базу данных
+
+        cart_items = CartItem.objects.filter(user=request.user, order=order)
+        for item in cart_items:
+            item.product.quantity += item.quantity
+            item.product.save()
+        order.status = Order.OrderStatus.CANCELLED
+        order.save()
+        return Response(_("Заказ успешно отменен"), status=status.HTTP_200_OK)
 
 
 class OrderMinSumView(ListAPIView):
