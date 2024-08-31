@@ -1,0 +1,346 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-31 13:37+0500\n"
+"PO-Revision-Date: 2024-08-31 11:58+0000\n"
+"Last-Translator:   <>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+"X-Translated-Using: django-rosetta 0.10.0\n"
+
+#: common/models.py:9
+msgid "Image"
+msgstr "Изображение"
+
+#: common/models.py:10
+msgid "Video"
+msgstr "Видео"
+
+#: common/models.py:11
+msgid "Audio"
+msgstr "Аудио"
+
+#: common/models.py:12
+msgid "Other"
+msgstr "Прочее"
+
+#: common/models.py:21
+msgid "file"
+msgstr "Файл"
+
+#: common/models.py:25
+msgid "type"
+msgstr "Тип"
+
+#: common/models.py:28
+msgid "Media"
+msgstr "Медиа"
+
+#: common/models.py:29
+msgid "Medias"
+msgstr "Медиа"
+
+#: common/models.py:37
+msgid "Invalid file extension for {}. Allowed: {}"
+msgstr "Недопустимое расширение файла для {}. Разрешено: {}"
+
+#: company/models.py:7 product/models.py:7 product/models.py:26
+#: product/models.py:50
+msgid "title"
+msgstr "название"
+
+#: company/models.py:8
+msgid "subtitle"
+msgstr ""
+
+#: company/models.py:15 company/models.py:16
+msgid "banner"
+msgstr ""
+
+#: company/models.py:20 product/models.py:8 product/models.py:51
+msgid "description"
+msgstr ""
+
+#: company/models.py:24 company/models.py:25
+msgid "About Us"
+msgstr ""
+
+#: company/models.py:39
+msgid "About Us Gallery"
+msgstr ""
+
+#: company/models.py:40
+msgid "About Us Galleries"
+msgstr ""
+
+#: company/models.py:44 order/models.py:22
+msgid "address"
+msgstr ""
+
+#: company/models.py:45
+msgid "phone number1"
+msgstr ""
+
+#: company/models.py:46
+msgid "phone number2"
+msgstr ""
+
+#: company/models.py:47
+msgid "work time"
+msgstr ""
+
+#: company/models.py:53 company/models.py:54
+msgid "contacts"
+msgstr ""
+
+#: company/models.py:58 product/models.py:38 users/models.py:15
+msgid "full name"
+msgstr ""
+
+#: company/models.py:59 product/models.py:39 users/models.py:18
+msgid "phone number"
+msgstr ""
+
+#: company/models.py:60
+msgid "subject"
+msgstr ""
+
+#: company/models.py:61
+msgid "message"
+msgstr ""
+
+#: company/models.py:64
+msgid "Contact With Us"
+msgstr ""
+
+#: company/models.py:65
+msgid "Contact with Us"
+msgstr ""
+
+#: company/models.py:69
+msgid "link"
+msgstr ""
+
+#: company/models.py:70
+msgid "icon"
+msgstr ""
+
+#: company/models.py:70
+msgid "write icon code"
+msgstr ""
+
+#: company/models.py:76
+msgid "Social Media"
+msgstr ""
+
+#: company/models.py:77
+msgid "Social Medias"
+msgstr ""
+
+#: order/models.py:11
+msgid "is visible"
+msgstr ""
+
+#: order/models.py:12 order/models.py:28
+msgid "created at"
+msgstr ""
+
+#: order/models.py:17
+msgid "Created"
+msgstr ""
+
+#: order/models.py:18
+msgid "Delivered"
+msgstr ""
+
+#: order/models.py:19
+msgid "Cancelled"
+msgstr ""
+
+#: order/models.py:21
+msgid "status"
+msgstr ""
+
+#: order/models.py:23
+msgid "latitude"
+msgstr ""
+
+#: order/models.py:24
+msgid "longitude"
+msgstr ""
+
+#: order/models.py:25
+msgid "Phone number"
+msgstr ""
+
+#: order/models.py:26
+msgid "total price"
+msgstr ""
+
+#: order/models.py:27
+msgid "order number"
+msgstr ""
+
+#: order/models.py:31
+msgid "Order"
+msgstr ""
+
+#: order/models.py:32
+msgid "Orders"
+msgstr ""
+
+#: order/models.py:36
+msgid "order minimum sum"
+msgstr ""
+
+#: order/models.py:39 order/models.py:40
+msgid "Order minimum sum"
+msgstr ""
+
+#: order/serializer.py:47
+#, python-brace-format
+msgid "Товар с ID {item_id} не найден в корзине."
+msgstr ""
+
+#: order/views.py:79
+msgid "All items from the cart have been removed"
+msgstr ""
+
+#: order/views.py:80
+msgid "Your cart is empty"
+msgstr ""
+
+#: order/views.py:98
+msgid "Ваша корзина пуста. Добавьте товары перед оформлением заказа."
+msgstr ""
+
+#: order/views.py:117
+msgid "Заказ успешно создан"
+msgstr ""
+
+#: order/views.py:140
+msgid "Заказ не найден"
+msgstr ""
+
+#: order/views.py:142
+msgid "Заказ уже отменен"
+msgstr ""
+
+#: order/views.py:152
+msgid "Заказ успешно отменен"
+msgstr ""
+
+#: product/models.py:9
+msgid "size"
+msgstr ""
+
+#: product/models.py:9
+msgid "size in liters"
+msgstr ""
+
+#: product/models.py:11
+msgid "price"
+msgstr ""
+
+#: product/models.py:11
+msgid "price in so'm"
+msgstr ""
+
+#: product/models.py:12
+msgid "quantity"
+msgstr ""
+
+#: product/models.py:14
+msgid "discount price"
+msgstr ""
+
+#: product/models.py:17
+msgid "Product"
+msgstr ""
+
+#: product/models.py:18
+msgid "Products"
+msgstr ""
+
+#: product/models.py:27
+msgid "value"
+msgstr ""
+
+#: product/models.py:30
+msgid "Product Attribute"
+msgstr ""
+
+#: product/models.py:31
+msgid "Product Attributes"
+msgstr ""
+
+#: product/models.py:45
+msgid "Web Order"
+msgstr ""
+
+#: product/models.py:46
+msgid "Web Orders"
+msgstr ""
+
+#: product/models.py:53
+msgid "percentage"
+msgstr ""
+
+#: product/models.py:56 product/models.py:57
+msgid "Action"
+msgstr ""
+
+#: users/models.py:12
+msgid "Legal"
+msgstr ""
+
+#: users/models.py:13
+msgid "Private"
+msgstr ""
+
+#: users/models.py:16
+msgid "username"
+msgstr ""
+
+#: users/models.py:17
+msgid "email address"
+msgstr ""
+
+#: users/models.py:19
+msgid "password"
+msgstr ""
+
+#: users/models.py:21
+msgid "user type"
+msgstr ""
+
+#: users/models.py:22
+msgid "telegram id"
+msgstr ""
+
+#: users/models.py:24
+msgid "telegram username"
+msgstr ""
+
+#: users/models.py:25
+msgid "company name"
+msgstr ""
+
+#: users/models.py:31
+msgid "User"
+msgstr ""
+
+#: users/models.py:32
+msgid "Users"
+msgstr ""
