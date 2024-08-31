@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema, OpenApiParameter, extend_schema_view
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.throttling import UserRateThrottle
 

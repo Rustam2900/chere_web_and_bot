@@ -1,11 +1,11 @@
 from django.urls import path
 
 from order.views import AddItemToCartView, ListItemsFromCardView, RemoveItemFromCartView, OrderCreateView, RemoveCart, \
-    OrderListView, OrderCancelView, OrderMinSumView
+    OrderHistoryListView, OrderCancelView, OrderMinSumView
 
 urlpatterns = [
     path('order-create/', OrderCreateView.as_view(), name='order_create'),
-    path('order-list/', OrderListView.as_view(), name='order_list'),
+    path('order-list/', OrderHistoryListView.as_view(), name='order_history_list'),
     path('<int:order_id>/order-cancel/', OrderCancelView.as_view(), name='order_cancel'),
     path('order-min-sum/', OrderMinSumView.as_view(), name='order_min_sum'),
     path('list-cart-items/', ListItemsFromCardView.as_view(), name='cart_item_list'),
