@@ -30,7 +30,6 @@ environ.Env.read_env(".env")
 SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
-
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # Application definition
@@ -50,6 +49,7 @@ LOCAL_APPS = [
     'product',
     'users',
     'order',
+    'bot'
 ]
 
 THIRD_PARTY_APPS = [
@@ -199,3 +199,6 @@ LOCALE_PATHS = [
 AUTH_USER_MODEL = 'users.CustomUser'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Bot
+BOT_TOKEN = env.str('BOT_TOKEN')
