@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 import telebot
-from telebot.types import InputFile, InputMediaPhoto
 
 from bot.keyboards import get_languages, get_registration_keyboard, get_user_types
 from bot.states import LegalRegisterState, IndividualRegisterState
