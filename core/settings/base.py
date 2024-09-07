@@ -55,6 +55,7 @@ LOCAL_APPS = [
 THIRD_PARTY_APPS = [
     'django',
     'phonenumber_field',
+    'django_phonenumbers',
     'rest_framework',
     'drf_spectacular',
     'rest_framework_simplejwt',

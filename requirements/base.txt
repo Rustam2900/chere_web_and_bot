@@ -2,6 +2,7 @@ django==5.1
 python-environ==0.4.54
 psycopg2-binary==2.9.9
 django-phonenumber-field==8.0.0
+django_phonenumbers==1.0.1
 djangorestframework==3.15.2
 drf-spectacular==0.27.2
 djangorestframework-simplejwt==5.3.1
