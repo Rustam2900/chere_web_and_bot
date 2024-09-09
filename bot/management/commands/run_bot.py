@@ -1,15 +1,21 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 import telebot
+from telebot.types import CallbackQuery, MenuButtonCommands, BotCommand, Message
 
 from bot.keyboards import get_languages, get_registration_keyboard, get_user_types
-from bot.states import LegalRegisterState, IndividualRegisterState
+from bot.states import LegalRegisterState, IndividualRegisterState, state_storage
 from bot.utils import default_languages, all_languages, user_languages, introduction_template, bot_description
 
 BOT_TOKEN = settings.BOT_TOKEN
 
-bot = telebot.TeleBot(BOT_TOKEN)
+bot = telebot.TeleBot(BOT_TOKEN, state_storage=state_storage)
 bot.set_my_description(bot_description)
+bot.set_my_commands(commands=[BotCommand('start', 'Boshlash')])
+bot.set_chat_menu_button(bot.get_me().id, MenuButtonCommands(type='commands'))
+
+
+
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
@@ -35,36 +41,47 @@ def query_get_languages(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'registration')
-def user_registration(call):
+def user_registration(call: CallbackQuery):
     user_id = call.from_user.id
     user_lang = user_languages[user_id]
     bot.send_message(chat_id=user_id, text=default_languages[user_lang]["select_user_type"],
                      reply_markup=get_user_types(user_lang))
 
 
-@bot.callback_query_handler(func=lambda call: call.data in ['legal', 'individual'])
-def legal_individual_registration(call):
+@bot.callback_query_handler(state="*",func=lambda call: call.data in ['legal', 'individual'])
+def legal_individual_registration(call: CallbackQuery):
     user_id = call.from_user.id
     user_lang = user_languages[user_id]
     if call.data == 'legal':
-        bot.send_message(chat_id=user_id, text=default_languages[user_lang]['company_name'],)
+        bot.send_message(chat_id=user_id, text=default_languages[user_lang]['company_name'], )
         bot.set_state(user_id=user_id, state=LegalRegisterState.company_name)
     elif call.data == 'individual':
-        bot.send_message(chat_id=user_id, text=default_languages[user_lang]['full_name'],)
+        bot.send_message(chat_id=user_id, text=default_languages[user_lang]['full_name'], )
         bot.set_state(user_id=user_id, state=IndividualRegisterState.full_name)
 
 
-# @bot.message_handler(content_types=['photo'])
-# def handle_photo(message):
-#     # Rasmning eng yuqori sifatli versiyasini olish
-#     photo_id = message.photo[-1].file_id
-#
-#     bot.reply_to(message, text=f"Rasm qabul qilindi!\n"
-#                                f"{photo_id}")
+
+@bot.message_handler(func=lambda msg: bot.get_state(user_id=msg.from_user.id) == IndividualRegisterState.full_name)
+def handler_user_company_full_name_input(message: Message):
+    user_id = message.from_user.id
+    current_state = bot.get_state(user_id)
+    if current_state == IndividualRegisterState.full_name:
+        bot.send_message(chat_id=user_id, text='full_name')
+    elif current_state == LegalRegisterState.company_name:
+        bot.send_message(chat_id=user_id, text='company_name')
+
+
+@bot.message_handler(content_types=['photo'])
+def handle_photo(message):
+    # Rasmning eng yuqori sifatli versiyasini olish
+    photo_id = message.photo[-1].file_id
+
+    bot.reply_to(message, text=f"Rasm qabul qilindi!\n"
+                               f"{photo_id}")
 
 
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
         print("Started....")
-        bot.infinity_polling()
+        bot.infinity_polling(skip_pending=True)
