@@ -1,87 +1,24 @@
-from django.core.management.base import BaseCommand
+import asyncio
+
+from aiogram import Bot, types
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
+
 from django.conf import settings
-import telebot
-from telebot.types import CallbackQuery, MenuButtonCommands, BotCommand, Message
+from django.core.management import BaseCommand
 
-from bot.keyboards import get_languages, get_registration_keyboard, get_user_types
-from bot.states import LegalRegisterState, IndividualRegisterState, state_storage
-from bot.utils import default_languages, all_languages, user_languages, introduction_template, bot_description
+from bot.management.commands.commands import commands
 
-BOT_TOKEN = settings.BOT_TOKEN
-
-bot = telebot.TeleBot(BOT_TOKEN, state_storage=state_storage)
-bot.set_my_description(bot_description)
-bot.set_my_commands(commands=[BotCommand('start', 'Boshlash')])
-bot.set_chat_menu_button(bot.get_me().id, MenuButtonCommands(type='commands'))
+bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 
-
-
-@bot.message_handler(commands=['start'])
-def welcome(message):
-    msg = default_languages['welcome_message']
-    bot.send_message(chat_id=message.chat.id, text=msg, reply_markup=get_languages())
-
-
-@bot.callback_query_handler(func=lambda x: x.data and x.data.startswith("lang"))
-def query_get_languages(call):
-    user_id = call.from_user.id
-    user_lang = call.data.split("_")[1]
-
-    if user_lang in all_languages:
-        user_languages[user_id] = user_lang
-        # bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        bot.send_photo(chat_id=user_id,
-                       photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
-                       caption=introduction_template[user_lang], reply_markup=get_registration_keyboard(user_lang),
-                       parse_mode='HTML')
-        print(user_languages)
-    else:
-        bot.send_message(chat_id=user_id, text=default_languages['language_not_found'], reply_markup=get_languages())
-
-
-@bot.callback_query_handler(func=lambda call: call.data == 'registration')
-def user_registration(call: CallbackQuery):
-    user_id = call.from_user.id
-    user_lang = user_languages[user_id]
-    bot.send_message(chat_id=user_id, text=default_languages[user_lang]["select_user_type"],
-                     reply_markup=get_user_types(user_lang))
-
-
-@bot.callback_query_handler(state="*",func=lambda call: call.data in ['legal', 'individual'])
-def legal_individual_registration(call: CallbackQuery):
-    user_id = call.from_user.id
-    user_lang = user_languages[user_id]
-    if call.data == 'legal':
-        bot.send_message(chat_id=user_id, text=default_languages[user_lang]['company_name'], )
-        bot.set_state(user_id=user_id, state=LegalRegisterState.company_name)
-    elif call.data == 'individual':
-        bot.send_message(chat_id=user_id, text=default_languages[user_lang]['full_name'], )
-        bot.set_state(user_id=user_id, state=IndividualRegisterState.full_name)
-
-
-
-@bot.message_handler(func=lambda msg: bot.get_state(user_id=msg.from_user.id) == IndividualRegisterState.full_name)
-def handler_user_company_full_name_input(message: Message):
-    user_id = message.from_user.id
-    current_state = bot.get_state(user_id)
-    if current_state == IndividualRegisterState.full_name:
-        bot.send_message(chat_id=user_id, text='full_name')
-    elif current_state == LegalRegisterState.company_name:
-        bot.send_message(chat_id=user_id, text='company_name')
-
-
-@bot.message_handler(content_types=['photo'])
-def handle_photo(message):
-    # Rasmning eng yuqori sifatli versiyasini olish
-    photo_id = message.photo[-1].file_id
-
-    bot.reply_to(message, text=f"Rasm qabul qilindi!\n"
-                               f"{photo_id}")
+async def main():
+    print("Starting bot...")
+    from bot.handlers import dp
+    await bot.set_my_commands(commands=commands)
+    await dp.start_polling(bot)
 
 
 class Command(BaseCommand):
-
     def handle(self, *args, **options):
-        print("Started....")
-        bot.infinity_polling(skip_pending=True)
+        asyncio.run(main())

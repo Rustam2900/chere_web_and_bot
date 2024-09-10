@@ -17,9 +17,10 @@ default_languages = {
         "company_name": "Kampaniya nomini kiriting",
         "employee_name": "Kampaniya xodimi ism familiyasini kiriting",
         "employee_count": "Kampaniyada ishchilar sonini kiriting",
-        "company_phone": "Kampaniya telefon raqamini kiriting",
+        "company_contact": "Kampaniya telefon raqamini kiriting",
         "working_days": "Kampaniyadagi ish kuni sonini kiriting",
         "duration_days": "Qancha vaqt mobaynida yetkazib berib turishimizni hohlaysiz?",
+        "successful_registration": "Muvaffaqiyatli ro'yxatdan o'tildi",
 
     },
 
@@ -32,9 +33,10 @@ default_languages = {
         "company_name": "Введите название кампании",
         "employee_name": "Введите имя и фамилию сотрудника кампании.",
         "employee_count": "Введите количество работников в кампании.",
-        "company_phone": "Введите номер телефона кампании",
+        "company_contact": "Введите номер телефона кампании",
         "working_days": "Введите количество рабочих дней в кампании",
         "duration_days": "Как долго вы хотите, чтобы мы доставили?",
+        "successful_registration": "Успешная регистрация",
     }
 }
 
