@@ -1,27 +1,62 @@
-from aiogram import Dispatcher, F
+from aiogram import Dispatcher, F, Bot
+from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
-from pyexpat.errors import messages
-from rest_framework_simplejwt.utils import aware_utcnow
+from aiogram.types import Message, CallbackQuery, PreCheckoutQuery, LabeledPrice
+import environ
 
-from bot.crud import create_user
-from bot.keyboards import get_languages, get_user_types, get_registration_keyboard, cancel_button
+from bot.crud import create_user_db, get_user_db
+from bot.keyboards import get_languages, get_user_types, get_registration_keyboard, cancel_button, get_user_contacts, \
+    get_main_menu, get_languages_is_none, get_confirm_button
 from bot.states import LegalRegisterState, IndividualRegisterState
-from bot.utils import default_languages, user_languages, all_languages, introduction_template
+from bot.utils import default_languages, user_languages, all_languages, introduction_template, calculate_total_water, \
+    offer_text
+from django.conf import settings
+from aiogram.client.default import DefaultBotProperties
 
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
+# reading .env file
+environ.Env.read_env(".env")
+PROVIDER_TOKEN = env.str('PROVIDER_TOKEN')
 dp = Dispatcher()
+bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 
 @dp.message(CommandStart())
 async def welcome(message: Message):
-    msg = default_languages['welcome_message']
-    await message.answer(msg, reply_markup=get_languages())
+    user = await get_user_db(message.from_user.id)
+    if not user:
+        msg = default_languages['welcome_message']
+        await message.answer(msg, reply_markup=get_languages())
+    else:
+        user_lang = user_languages.get(message.from_user.id, None)
+        if user_lang:
+            await message.answer_photo(
+                photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
+                caption=introduction_template[user_lang], reply_markup=get_main_menu(user_lang))
+        else:
+            msg = default_languages['welcome_message']
+            await message.answer(msg, reply_markup=get_languages_is_none())
+
+
+@dp.callback_query(F.data.startswith('not_found_lang'))
+async def get_user_lang_is_none(call: CallbackQuery):
+    user_id = call.from_user.id
+    user_lang = call.data.split('_')[-1]
+    if user_lang in all_languages:
+        user_languages[user_id] = user_lang
+        await call.message.answer_photo(
+            photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
+            caption=introduction_template[user_lang], reply_markup=get_main_menu(user_lang))
 
 
 @dp.callback_query(F.data == "cancel")
 async def cancel_callback(call: CallbackQuery, state: FSMContext):
     user_lang = user_languages[call.from_user.id]
+
     await state.clear()
     await call.message.answer("cancel", reply_markup=get_user_types(user_lang))
 
@@ -33,7 +68,6 @@ async def get_query_languages(call: CallbackQuery):
 
     if user_lang in all_languages:
         user_languages[user_id] = user_lang
-        # bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         await call.message.answer_photo(
             photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
             caption=introduction_template[user_lang], reply_markup=get_registration_keyboard(user_lang))
@@ -67,7 +101,7 @@ async def legal_individual_registration(call: CallbackQuery, state: FSMContext):
 async def company_name(message: Message, state: FSMContext):
     user_lang = user_languages[message.from_user.id]
     await state.update_data(company_name=message.text)
-    await message.answer(text=default_languages[user_lang]['employee_name'], reply_markup=cancel_button())
+    await message.answer(text=default_languages[user_lang]['employee_name'])
     await state.set_state(LegalRegisterState.employee_name)
 
 
@@ -75,14 +109,18 @@ async def company_name(message: Message, state: FSMContext):
 async def employee_name(message: Message, state: FSMContext):
     user_lang = user_languages[message.from_user.id]
     await state.update_data(employee_name=message.text)
-    await message.answer(text=default_languages[user_lang]['company_contact'], reply_markup=cancel_button())
+    await message.answer(text=default_languages[user_lang]['company_contact'],
+                         reply_markup=get_user_contacts(user_lang))
     await state.set_state(LegalRegisterState.company_contact)
 
 
 @dp.message(LegalRegisterState.company_contact)
 async def company_contact(message: Message, state: FSMContext):
     user_lang = user_languages[message.from_user.id]
-    await state.update_data(company_contact=message.text)
+    if message.text is None:
+        await state.update_data(company_contact=message.contact.phone_number)
+    else:
+        await state.update_data(company_contact=message.text)
     await message.answer(text=default_languages[user_lang]['employee_count'])
     await state.set_state(LegalRegisterState.employee_count)
 
@@ -106,25 +144,47 @@ async def duration_days(message: Message, state: FSMContext):
 @dp.message(LegalRegisterState.working_days)
 async def working_days(message: Message, state: FSMContext):
     user_lang = user_languages[message.from_user.id]
+    await state.update_data(working_days=message.text)
+    await message.answer(text=default_languages[user_lang]['password'])
+    await state.set_state(LegalRegisterState.password)
+
+
+@dp.message(LegalRegisterState.password)
+async def working_days(message: Message, state: FSMContext):
+    user_lang = user_languages[message.from_user.id]
     state_data = await state.get_data()
+    employees_count = int(state_data['employee_count'])
+    durations_days = int(state_data['duration_days'])
+    total_water = calculate_total_water(state_data['working_days'], employees_count, durations_days)
     data = {
-        "full_name": state_data['full_name'],
-        "user_name": message.from_user.username,
+        "full_name": state_data['employee_name'],
+        "username": message.from_user.username,
+        "password": message.text,
         "company_name": state_data['company_name'],
         "phone_number": state_data['company_contact'],
         "user_type": "legal",
         "telegram_id": message.from_user.id,
         "tg_username": f"https://t.me/{message.from_user.username}",
     }
-    create_user(data)
-    await message.answer(text=default_languages[user_lang]['successful_registration'])
+    await create_user_db(data)
+
+    await message.answer(offer_text[user_lang].format(employees_count, durations_days, total_water),
+                         reply_markup=get_confirm_button(user_lang))
 
 
 @dp.message(IndividualRegisterState.full_name)
 async def full_name(message: Message, state: FSMContext):
     user_lang = user_languages[message.from_user.id]
     await state.update_data(full_name=message.text)
-    await message.answer(text=default_languages[user_lang]['company_contact'], reply_markup=cancel_button())
+    await message.answer(text=default_languages[user_lang]['password'])
+    await state.set_state(IndividualRegisterState.password)
+
+
+@dp.message(IndividualRegisterState.password)
+async def get_individual_password(message: Message, state: FSMContext):
+    user_lang = user_languages[message.from_user.id]
+    await state.update_data(password=message.text)
+    await message.answer(text=default_languages[user_lang]['contact'], reply_markup=get_user_contacts(user_lang))
     await state.set_state(IndividualRegisterState.contact)
 
 
@@ -132,10 +192,76 @@ async def full_name(message: Message, state: FSMContext):
 async def contact(message: Message, state: FSMContext):
     user_lang = user_languages[message.from_user.id]
     data = await state.get_data()
-    data['phone_number'] = message.text
+    if message.text is None:
+        data['phone_number'] = message.contact.phone_number
+    else:
+        data['phone_number'] = message.text
     data['user_type'] = 'individual'
     data['telegram_id'] = message.from_user.id
     data['username'] = message.from_user.username
     data['tg_username'] = f"https://t.me/{message.from_user.username}"
-    await create_user(data)
-    await message.answer(text=default_languages[user_lang]['successful_registration'])
+    await create_user_db(data)
+    await message.answer(text=default_languages[user_lang]['successful_registration'],
+                         reply_markup=get_main_menu(user_lang))
+
+
+@dp.message(F.text.in_(["⚙️ Настройки", "⚙️ Sozlamalar"]))
+async def settings(message: Message):
+    await message.answer(text="Settings logikasi")
+
+
+@dp.message(F.text.in_(["📲 Biz bilan bog'lanish", "📲 Связаться с нами"]))
+async def contact_us(message: Message):
+    await message.answer(text="Biz bilan bog'lanish logikasi")
+
+
+@dp.message(F.text.in_(["📦 Mening buyurtmalarim", "📦 Мои заказы"]))
+async def get_my_orders(message: Message):
+    await message.answer(text='Mening buyurtmalarim logikasi')
+
+
+@dp.message(F.func(lambda msg: msg.web_app_data.data if msg.web_app_data else None))
+async def get_btn(msg: Message):
+    print(msg.chat.full_name, msg.chat.username)
+    text = msg.web_app_data.data
+    product_data = text.split("|")
+    products = {}
+    for i in range(len(product_data)):
+        if len(product_data[i].split("/")) >= 3:
+            title = product_data[i].split('/')[0]
+            price = product_data[i].split('/')[1]
+            quantity = product_data[i].split('/')[2]
+            product = {
+                "title": title,
+                "price": int(price),
+                "quantity": int(quantity)
+            }
+            products[i] = product
+    await bot.send_invoice(
+        chat_id=msg.chat.id,
+        title="Оплата",
+        need_name=True,
+        need_phone_number=True,
+        description="Оплата через Telegram bot",
+        provider_token=PROVIDER_TOKEN,
+        currency="UZS",
+        payload="Ichki malumot",
+        prices=[LabeledPrice(label=f"{product["title"]}({product["quantity"]})",
+                             amount=(product["price"] * product["quantity"]) * 100)
+                for product in products.values()],
+        max_tip_amount=50000000,  # Chayeviy
+        suggested_tip_amounts=[100000, 300000, 500000, 600000],  # Chayeviy
+        need_shipping_address=True,
+
+    )
+
+
+@dp.pre_checkout_query()
+async def pre_checkout(query: PreCheckoutQuery):
+    await bot.answer_pre_checkout_query(query.id, ok=True)
+
+
+@dp.message(F.func(lambda msg: msg.successful_payment if msg.successful_payment else None))
+async def successful_payment(msg: Message):
+    print(msg.successful_payment)
+    await msg.answer("To'lov uchun raxmat!")

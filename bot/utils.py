@@ -21,7 +21,15 @@ default_languages = {
         "working_days": "Kampaniyadagi ish kuni sonini kiriting",
         "duration_days": "Qancha vaqt mobaynida yetkazib berib turishimizni hohlaysiz?",
         "successful_registration": "Muvaffaqiyatli ro'yxatdan o'tildi",
-
+        "contact": "Telefon raqamingizni kiriting",
+        "share_contact": "Kantaktni bo'lishish",
+        "password": "Akkountingiz uchun parol kiriting",
+        "web_app": "📎 Veb ilova",
+        "settings": "⚙️ Sozlamalar",
+        "contact_us": "📲 Biz bilan bog'lanish",
+        "my_orders": "📦 Mening buyurtmalarim",
+        "create_order": "Buyurtma berish",
+        "cancel": "Bekor qilish",
     },
 
     "ru": {
@@ -37,6 +45,15 @@ default_languages = {
         "working_days": "Введите количество рабочих дней в кампании",
         "duration_days": "Как долго вы хотите, чтобы мы доставили?",
         "successful_registration": "Успешная регистрация",
+        "contact": "Введите свой номер телефона",
+        "share_contact": "Поделиться контактом",
+        "password": "Введите пароль для вашей учетной записи",
+        "web_app": "📎 Веб-приложение",
+        "settings": "⚙️ Настройки",
+        "contact_us": "📲 Связаться с нами",
+        "my_orders": "📦 Мои заказы",
+        "create_order": "Сделать заказ",
+        "cancel": "Отменить",
     }
 }
 
@@ -99,3 +116,22 @@ Bu bot Nima qila qila oladi?
 
 💦 Этот бот создан для того, чтобы вы могли заказывать чистую питьевую воду Chere в любое время из дома и пользоваться услугами 💦
 """
+
+offer_text = {
+    "ru":
+        "Сотрудники: {}\n"
+        "День непрерывности: {}\n"
+        "Мы рекомендуем вашим работникам {} бутылок с водой по 20 л.\n",
+    "uz":
+        """
+    Xodim: {}
+    Davomiylik kuni: {}
+    Xodimlaringizga {} x 20 litrli suv idishlarini tavsiya qilamiz.
+        """
+}
+
+
+def calculate_total_water(week_days, employee_count, durations_days):
+    available_days = int(durations_days) // int(week_days) + int(durations_days) % int(week_days)
+    total_water = available_days * int(employee_count) * 2
+    return total_water // 20

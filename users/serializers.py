@@ -20,8 +20,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return attrs
 
 
-
-
 class UserLoginSerializer(serializers.ModelSerializer):
     username = serializers.CharField()
     password = serializers.CharField()
@@ -50,6 +48,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = (
-            'id', 'full_name', 'username', 'email', 'first_name', 'last_name', 'phone_number', 'password',
+            'full_name', 'username', 'email', 'first_name', 'last_name', 'phone_number',
             'telegram_id',
             'tg_username')

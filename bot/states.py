@@ -8,7 +8,9 @@ class LegalRegisterState(StatesGroup):
     employee_count = State()
     duration_days = State()
     working_days = State()
+    password = State()
 
 class IndividualRegisterState(StatesGroup):
     full_name = State()
     contact = State()
+    password = State()

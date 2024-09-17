@@ -38,3 +38,18 @@ class OrderMinSum(models.Model):
     class Meta:
         verbose_name = _("Order minimum sum")
         verbose_name_plural = _("Order minimum sum")
+
+
+class NotificationOrder(models.Model):
+    order = models.ForeignKey('order.Order', on_delete=models.CASCADE, related_name='notification_orders')
+    user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='notification_orders')
+    employee_count = models.PositiveIntegerField(_('employee count'), default=0)
+    durations_days = models.PositiveIntegerField(_('durations days'), default=0)
+    box_count = models.PositiveIntegerField(_('box count'), default=0)
+
+    def __str__(self):
+        return f"{self.order.id} {self.employee_count} {self.durations_days} {self.box_count}"
+
+    class Meta:
+        verbose_name = _("Notification order")
+        verbose_name_plural = _("Notification orders")
