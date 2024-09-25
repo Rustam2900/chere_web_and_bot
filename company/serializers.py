@@ -3,7 +3,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_field
 from rest_framework import serializers
 
 from common.serializers import MediaURLSerializer
-from company.models import Banner, AboutUs, AboutUsGallery, SocialMedia, ContactWithUs
+from company.models import Banner, AboutUs, AboutUsGallery, SocialMedia, ContactWithUs, Contacts
 
 
 class BannerListSerializer(serializers.ModelSerializer):
@@ -56,3 +56,8 @@ class ContactWithUsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactWithUs
         fields = ("full_name", "phone_number", "subject", "message")
+
+class ContactsListCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contacts
+        fields = ("id", "address", "phone_number1", "phone_number2", "work_time")

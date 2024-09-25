@@ -30,6 +30,12 @@ default_languages = {
         "my_orders": "📦 Mening buyurtmalarim",
         "create_order": "Buyurtma berish",
         "cancel": "Bekor qilish",
+        "select_language": "Tilni tanlang!",
+        "successful_changed": "Muvaffaqiyatli o'zgartirildi",
+        "contact_us_message": "Bizning manzil:\n{}\n\n"
+                              "Biz bilan bog'laning:\n{}\n{}\n\n"
+                              "Murojaat vaqti:\n{}"
+
     },
 
     "ru": {
@@ -54,11 +60,16 @@ default_languages = {
         "my_orders": "📦 Мои заказы",
         "create_order": "Сделать заказ",
         "cancel": "Отменить",
+        "select_language": "Выберите язык!",
+        "successful_changed": "Успешно изменено",
+        "contact_us_message": "Наш адрес:\n{}\n\n"
+                              "Связаться с нами:\n{}\n{}\n\n"
+                              "Время подачи заявки:\n{}"
     }
 }
 
 user_languages = {}
-
+user_contacts = {}
 introduction_template = {
     'ru':
         """

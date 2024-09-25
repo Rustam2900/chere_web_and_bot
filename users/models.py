@@ -13,9 +13,9 @@ class CustomUser(AbstractUser):
         PRIVATE = 'private', _('Private')
 
     full_name = models.CharField(_("full name"), blank=True, max_length=255)
-    username = models.CharField(_("username"), blank=True, max_length=255, unique=True)
-    email = models.EmailField(_("email address"), blank=True, null=True )
-    phone_number = PhoneNumberField(_("phone number"), blank=True, null=True, unique=True)
+    username = models.CharField(_("username"), blank=True, max_length=255, null=True)
+    email = models.EmailField(_("email address"), blank=True, null=True)
+    phone_number = PhoneNumberField(_("phone number"), blank=True, unique=True)
     password = models.CharField(_("password"), blank=True, max_length=255)
     user_type = models.CharField(
         _("user type"), choices=UserType.choices, default=UserType.PRIVATE, blank=True, max_length=255)
@@ -30,3 +30,4 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = _("User")
         verbose_name_plural = _("Users")
+    USERNAME_FIELD = "phone_number"
