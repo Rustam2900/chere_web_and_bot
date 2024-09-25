@@ -27,8 +27,6 @@ def get_company_contacts():
     return contact
 
 @sync_to_async
-def get_my_orders(phone_number):
-    user = get_user_db(phone_number)
+def get_my_orders(user):
     print("DB ",user)
-    orders = Order.objects.filter(user=user).all()
-    return orders
+    return list(Order.objects.all().filter(user=user))

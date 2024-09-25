@@ -31,7 +31,9 @@ async def welcome(message: Message):
     user_contact = user_contacts.get(message.from_user.id, None)
     user_lang = user_languages.get(message.from_user.id, None)
     print(user_contact)
-    if user_contact and user_lang is None:
+    print(user_lang)
+    if user_contact is None and user_lang is None:
+        print("Is none")
         msg = default_languages['welcome_message']
         await message.answer(msg, reply_markup=get_languages())
     else:
@@ -215,6 +217,7 @@ async def contact(message: Message, state: FSMContext):
     await create_user_db(data)
     await message.answer(text=default_languages[user_lang]['successful_registration'],
                          reply_markup=get_main_menu(user_lang))
+
     await state.clear()
 
 
@@ -244,9 +247,10 @@ async def contact_us(message: Message):
 @dp.message(F.text.in_(["📦 Mening buyurtmalarim", "📦 Мои заказы"]))
 async def get_orders(message: Message):
     phone_number = user_contacts[message.from_user.id]
-    orders = await get_my_orders(phone_number)
+    user = await get_user_db(phone_number)
+    orders = await get_my_orders(user)
     print(orders)
-    await message.answer(text='Mening buyurtmalarim logikasi')
+    await message.answer(text="orders")
 
 
 @dp.message(F.func(lambda msg: msg.web_app_data.data if msg.web_app_data else None))
