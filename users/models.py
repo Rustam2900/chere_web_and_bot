@@ -17,6 +17,7 @@ class CustomUser(AbstractUser):
     password = models.CharField(_("password"), blank=True, max_length=255)
     user_type = models.CharField(
         _("user type"), choices=UserType.choices, default=UserType.PRIVATE, blank=True, max_length=255)
+    user_lang = models.CharField(_("user language"), blank=True, null=True, max_length=10)
     telegram_id = models.CharField(_("telegram id"), blank=True, null=True, max_length=255, unique=True)
     tg_username = models.CharField(
         _("telegram username"), blank=True, null=True, max_length=255, unique=True)

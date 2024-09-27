@@ -1,5 +1,4 @@
 from aiogram.fsm.state import State, StatesGroup
-# state_storage = StateMemoryStorage()  # не используйте это в продакшене; переключитесь на redis
 
 class LegalRegisterState(StatesGroup):
     company_name = State()
@@ -13,4 +12,8 @@ class LegalRegisterState(StatesGroup):
 class IndividualRegisterState(StatesGroup):
     full_name = State()
     contact = State()
+    password = State()
+
+class LoginStates(StatesGroup):
+    phone = State()
     password = State()

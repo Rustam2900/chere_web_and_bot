@@ -9,11 +9,16 @@ default_languages = {
                        "Выберите один из языков ниже!",
 
     "uz": {
+        "order": "Buyurtmalarim",
         "full_name": "To'liq ismingizni kiriting",
         "individual": "Jismoniy shaxs",
         "legal": "Yuridik shaxs",
         "select_user_type": "Foydalanuvchi turini tanlang",
         "registration": "Ro'yxatdan o'tish",
+        "login": "Kirish",
+        "logout": "↩️ Akkauntdan chiqish",
+        'exit': "Siz akkauntingizdan chiqdingiz",
+        "sign_password": "Parolni kiritng",
         "company_name": "Kampaniya nomini kiriting",
         "employee_name": "Kampaniya xodimi ism familiyasini kiriting",
         "employee_count": "Kampaniyada ishchilar sonini kiriting",
@@ -21,6 +26,8 @@ default_languages = {
         "working_days": "Kampaniyadagi ish kuni sonini kiriting",
         "duration_days": "Qancha vaqt mobaynida yetkazib berib turishimizni hohlaysiz?",
         "successful_registration": "Muvaffaqiyatli ro'yxatdan o'tildi",
+        "successful_login": "Muvaffaqiyatli kirish",
+        "user_not_found": "Foydalanuvchi topilmadi",
         "contact": "Telefon raqamingizni kiriting",
         "share_contact": "Kantaktni bo'lishish",
         "password": "Akkountingiz uchun parol kiriting",
@@ -39,11 +46,16 @@ default_languages = {
     },
 
     "ru": {
+        "order": "Мои заказы",
         "full_name": "Введите свое полное имя",
         "individual": "Физическое лицо",
         "legal": "Юридическое лицо",
         "select_user_type": "Выберите тип пользователя",
         "registration": "Зарегистрироваться",
+        "login": "Войти",
+        "logout": "↩️ Выйти из аккаунта",
+        "exit": "Вы вышли из своей учетной записи",
+        "sign_password": "Введите пароль",
         "company_name": "Введите название кампании",
         "employee_name": "Введите имя и фамилию сотрудника кампании.",
         "employee_count": "Введите количество работников в кампании.",
@@ -51,6 +63,8 @@ default_languages = {
         "working_days": "Введите количество рабочих дней в кампании",
         "duration_days": "Как долго вы хотите, чтобы мы доставили?",
         "successful_registration": "Успешная регистрация",
+        "successful_login": "Успешный вход",
+        "user_not_found": "Пользователь не найден",
         "contact": "Введите свой номер телефона",
         "share_contact": "Поделиться контактом",
         "password": "Введите пароль для вашей учетной записи",
@@ -69,7 +83,9 @@ default_languages = {
 }
 
 user_languages = {}
-user_contacts = {}
+local_user = {}
+
+
 introduction_template = {
     'ru':
         """
@@ -141,8 +157,13 @@ offer_text = {
         """
 }
 
+order_text = {
+    "uz":"Buyurtma raqami {} \n Buyurtma holati {}",
+    "ru": "Номер заказа {} \n Статус заказа {}"
+    }
+
 
 def calculate_total_water(week_days, employee_count, durations_days):
-    available_days = int(durations_days) // int(week_days) + int(durations_days) % int(week_days)
+    available_days = int(durations_days) // 7 *  int(week_days) + int(durations_days) % 7
     total_water = available_days * int(employee_count) * 2
     return total_water // 20

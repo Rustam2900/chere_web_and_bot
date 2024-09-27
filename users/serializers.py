@@ -33,12 +33,10 @@ class UserLoginSerializer(serializers.ModelSerializer):
         phone_number = attrs.get('phone_number')
         password = attrs.get('password')
         if phone_number and password:
-            print(phone_number)
             try:
                 user = CustomUser.objects.filter(phone_number=phone_number).last()
             except CustomUser.DoesNotExist:
                 raise serializers.ValidationError(_("Invalid phone number or password"))
-            print(user)
             if user and check_password(password, user.password):
                 return user
 
