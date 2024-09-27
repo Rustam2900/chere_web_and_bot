@@ -309,6 +309,7 @@ async def get_btn(msg: Message):
         prices=[LabeledPrice(label=f"{product['title']}({product['quantity']})",
                              amount=(product['price'] * product['quantity']) * 100)
                 for product in products.values()],
+
         max_tip_amount=50000000,  # Chayeviy
         suggested_tip_amounts=[100000, 300000, 500000, 600000],  # Chayeviy
         need_shipping_address=True,
