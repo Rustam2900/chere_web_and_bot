@@ -27,14 +27,15 @@ bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=Pars
 @dp.message(CommandStart())
 async def welcome(message: Message):
     user_lang = user_languages.get(message.from_user.id, None)
-
-    if user_lang is None:
-        msg = default_languages['welcome_message']
-        await message.answer(msg, reply_markup=get_languages())
-    else:
+    user_phone = local_user.get(message.from_user.id, None)
+    if user_phone and user_lang:
         await message.answer_photo(
             photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
             caption=introduction_template[user_lang], reply_markup=get_main_menu(user_lang))
+    else:
+        msg = default_languages['welcome_message']
+        await message.answer(msg, reply_markup=get_languages())
+
 
 
 @dp.callback_query(F.data == "cancel")
@@ -305,8 +306,8 @@ async def get_btn(msg: Message):
         provider_token=PROVIDER_TOKEN,
         currency="UZS",
         payload="Ichki malumot",
-        prices=[LabeledPrice(label=f"{product["title"]}({product["quantity"]})",
-                             amount=(product["price"] * product["quantity"]) * 100)
+        prices=[LabeledPrice(label=f"{product['title']}({product['quantity']})",
+                             amount=(product['price'] * product['quantity']) * 100)
                 for product in products.values()],
         max_tip_amount=50000000,  # Chayeviy
         suggested_tip_amounts=[100000, 300000, 500000, 600000],  # Chayeviy
