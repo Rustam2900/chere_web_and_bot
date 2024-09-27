@@ -10,3 +10,6 @@ django-modeltranslation==0.19.7
 django-rosetta==0.10.0
 pyTelegramBotAPI==4.22.1
 aiogram==3.4.1
+
+# botda bazani async ishlatish uchun
+asyncpg==0.29.0

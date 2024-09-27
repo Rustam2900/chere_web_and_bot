@@ -2,14 +2,14 @@ from django.shortcuts import render
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import ListAPIView, GenericAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, GenericAPIView, CreateAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import APIView
 
-from company.models import Banner, AboutUs, SocialMedia, ContactWithUs
+from company.models import Banner, AboutUs, SocialMedia, ContactWithUs, Contacts
 from .serializers import BannerListSerializer, AboutUsHomeSerializer, AboutUsSerializer, SocialMediaSerializer, \
-    ContactWithUsSerializer
+    ContactWithUsSerializer, ContactsListCreateSerializer
 
 
 class BannerListView(ListAPIView):
@@ -50,3 +50,8 @@ class ContactWithUsView(CreateAPIView):
 class SocialMediaView(ListAPIView):
     serializer_class = SocialMediaSerializer
     queryset = SocialMedia.objects.all()
+
+class ContactCreateListAPIView(ListCreateAPIView):
+    serializer_class = ContactsListCreateSerializer
+    queryset = Contacts.objects.all()
+    throttle_classes = [UserRateThrottle, ]

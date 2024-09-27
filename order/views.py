@@ -1,7 +1,8 @@
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
+from referencing.typing import Retrieve
 from rest_framework import status
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -19,11 +20,14 @@ class AddItemToCartView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        product = Product.objects.get(pk=kwargs.get('product_id'))
+        try:
+            product = Product.objects.get(pk=kwargs.get('product_id'))
+        except Product.DoesNotExist:
+            return Response({_("Product not found")},status=status.HTTP_404_NOT_FOUND)
         if product.quantity <= 0:
             return Response({"error": "Извините, товар временно недоступен"}, status=status.HTTP_400_BAD_REQUEST)
-        cart_items = CartItem.objects.filter(user=request.user, product=product, is_visible=True)
-        if not cart_items.exists():
+        cart_items = CartItem.objects.filter(user=request.user, product=product, is_visible=True).first()
+        if not cart_items:
             CartItem.objects.create(user=request.user, product=product, quantity=1, is_visible=True)
 
         else:
@@ -33,10 +37,11 @@ class AddItemToCartView(CreateAPIView):
         return Response({"status": "Вы добавили товар в корзину"}, status=status.HTTP_201_CREATED)
 
 
-class RemoveItemFromCartView(RetrieveUpdateDestroyAPIView):
-    serializer_class = RemoveItemFromCartViewSerializer
+class RemoveItemFromCartView(RetrieveDestroyAPIView):
+    serializer_class = ListItemsFromCardViewSerializer
     permission_classes = [IsAuthenticated]
     throttle_classes = []
+    lookup_field = 'product_id'
 
     def get_queryset(self):
         qs = CartItem.objects.filter(user=self.request.user, is_visible=True)
@@ -45,7 +50,8 @@ class RemoveItemFromCartView(RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         product_id = kwargs.get('product_id')
         product_in_cart = CartItem.objects.filter(user=request.user, product=product_id, is_visible=True).first()
-        if product_in_cart.exists() is None:
+
+        if product_in_cart is None:
             return Response({"В вашей корзине нет такого товара!"}, status=status.HTTP_404_NOT_FOUND)
         elif product_in_cart.quantity > 1:
             product_in_cart.quantity -= 1

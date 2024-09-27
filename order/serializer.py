@@ -16,7 +16,7 @@ class AddItemToCartSerializer(serializers.ModelSerializer):
 class RemoveItemFromCartViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
-        fields = ("id",)
+        fields = ("id", "product", "quantity")
 
 
 class ListItemsFromCardViewSerializer(serializers.ModelSerializer):

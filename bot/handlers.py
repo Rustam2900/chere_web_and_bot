@@ -4,21 +4,20 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery, PreCheckoutQuery, LabeledPrice
 import environ
+from django.contrib.auth.hashers import make_password
 
-from bot.crud import create_user_db, get_user_db
-from bot.keyboards import get_languages, get_user_types, get_registration_keyboard, cancel_button, get_user_contacts, \
-    get_main_menu, get_languages_is_none, get_confirm_button
-from bot.states import LegalRegisterState, IndividualRegisterState
-from bot.utils import default_languages, user_languages, all_languages, introduction_template, calculate_total_water, \
-    offer_text
+from bot.db import create_user_db, get_company_contacts, get_my_orders, login_user
+from bot.keyboards import get_languages, get_user_types, get_registration_keyboard, get_user_contacts, \
+    get_main_menu, get_confirm_button, get_registration_and_login_keyboard
+from bot.states import LegalRegisterState, IndividualRegisterState, LoginStates
+from bot.utils import default_languages, user_languages, introduction_template, calculate_total_water, \
+    offer_text, order_text, local_user
 from django.conf import settings
 from aiogram.client.default import DefaultBotProperties
 
 env = environ.Env(
-    # set casting, default value
     DEBUG=(bool, False)
 )
-# reading .env file
 environ.Env.read_env(".env")
 PROVIDER_TOKEN = env.str('PROVIDER_TOKEN')
 dp = Dispatcher()
@@ -27,28 +26,13 @@ bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=Pars
 
 @dp.message(CommandStart())
 async def welcome(message: Message):
-    user = await get_user_db(message.from_user.id)
-    if not user:
+    user_lang = user_languages.get(message.from_user.id, None)
+
+    if user_lang is None:
         msg = default_languages['welcome_message']
         await message.answer(msg, reply_markup=get_languages())
     else:
-        user_lang = user_languages.get(message.from_user.id, None)
-        if user_lang:
-            await message.answer_photo(
-                photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
-                caption=introduction_template[user_lang], reply_markup=get_main_menu(user_lang))
-        else:
-            msg = default_languages['welcome_message']
-            await message.answer(msg, reply_markup=get_languages_is_none())
-
-
-@dp.callback_query(F.data.startswith('not_found_lang'))
-async def get_user_lang_is_none(call: CallbackQuery):
-    user_id = call.from_user.id
-    user_lang = call.data.split('_')[-1]
-    if user_lang in all_languages:
-        user_languages[user_id] = user_lang
-        await call.message.answer_photo(
+        await message.answer_photo(
             photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
             caption=introduction_template[user_lang], reply_markup=get_main_menu(user_lang))
 
@@ -65,24 +49,63 @@ async def cancel_callback(call: CallbackQuery, state: FSMContext):
 async def get_query_languages(call: CallbackQuery):
     user_id = call.from_user.id
     user_lang = call.data.split("_")[1]
-
-    if user_lang in all_languages:
-        user_languages[user_id] = user_lang
+    user_languages[user_id] = user_lang
+    user = local_user.get(user_id, None)
+    if user is None:
         await call.message.answer_photo(
             photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
-            caption=introduction_template[user_lang], reply_markup=get_registration_keyboard(user_lang))
-        print(user_languages)
+            caption=introduction_template[user_lang], reply_markup=get_registration_and_login_keyboard(user_lang))
     else:
-        await call.message.answer(chat_id=user_id, text=default_languages['language_not_found'],
-                                  reply_markup=get_languages())
-
+        await call.message.answer_photo(
+            photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
+            caption=introduction_template[user_lang], reply_markup=get_main_menu(user_lang))
 
 @dp.callback_query(F.data == "registration")
-async def user_select_type(call: CallbackQuery):
+async def reg_user_contact(call: CallbackQuery):
     user_id = call.from_user.id
     user_lang = user_languages[user_id]
     await call.message.answer(text=default_languages[user_lang]['select_user_type'],
                               reply_markup=get_user_types(user_lang))
+
+
+@dp.callback_query(F.data == "login")
+async def user_sign_in(call: CallbackQuery, state: FSMContext):
+    user_lang = user_languages[call.from_user.id]
+    await state.set_state(LoginStates.password)
+    await call.message.answer(text=default_languages[user_lang]['sign_password'])
+
+
+@dp.message(LoginStates.password)
+async def sign_user_password(msg: Message, state: FSMContext):
+    user_lang = user_languages[msg.from_user.id]
+    await state.update_data(password=msg.text)
+    await msg.answer(text=default_languages[user_lang]['contact'], reply_markup=get_user_contacts(user_lang))
+    await state.set_state(LoginStates.phone)
+
+
+@dp.message(LoginStates.phone)
+async def sign_user_contact(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    username = message.from_user.username
+    user_lang = user_languages[user_id]
+    state_data = await state.get_data()
+    password = state_data['password']
+    if message.text is None:
+        phone = message.contact.phone_number
+    else:
+        phone = message.text
+    user = await login_user(phone, password, user_id, username, user_lang)
+    if user:
+        local_user[message.from_user.id] = user.phone_number
+        user_languages[user_id] = user.user_lang
+        await message.answer(
+            text=default_languages[user.user_lang]['successful_login'],
+            reply_markup=get_main_menu(user.user_lang))
+    else:
+        await message.answer(
+            text=default_languages[user_lang]['user_not_found'],
+            reply_markup=get_registration_keyboard(user_lang))
+    await state.clear()
 
 
 @dp.callback_query(F.data.in_(['legal', 'individual']))
@@ -151,7 +174,8 @@ async def working_days(message: Message, state: FSMContext):
 
 @dp.message(LegalRegisterState.password)
 async def working_days(message: Message, state: FSMContext):
-    user_lang = user_languages[message.from_user.id]
+    user_id = message.from_user.id
+    user_lang = user_languages[user_id]
     state_data = await state.get_data()
     employees_count = int(state_data['employee_count'])
     durations_days = int(state_data['duration_days'])
@@ -159,17 +183,20 @@ async def working_days(message: Message, state: FSMContext):
     data = {
         "full_name": state_data['employee_name'],
         "username": message.from_user.username,
-        "password": message.text,
+        "password": make_password(message.text),
         "company_name": state_data['company_name'],
         "phone_number": state_data['company_contact'],
         "user_type": "legal",
-        "telegram_id": message.from_user.id,
+        "user_lang": user_lang,
+        "telegram_id": user_id,
         "tg_username": f"https://t.me/{message.from_user.username}",
     }
     await create_user_db(data)
+    local_user[user_id] = state_data['company_contact']
 
     await message.answer(offer_text[user_lang].format(employees_count, durations_days, total_water),
                          reply_markup=get_confirm_button(user_lang))
+    await state.clear()
 
 
 @dp.message(IndividualRegisterState.full_name)
@@ -183,7 +210,7 @@ async def full_name(message: Message, state: FSMContext):
 @dp.message(IndividualRegisterState.password)
 async def get_individual_password(message: Message, state: FSMContext):
     user_lang = user_languages[message.from_user.id]
-    await state.update_data(password=message.text)
+    await state.update_data(password=make_password(message.text))
     await message.answer(text=default_languages[user_lang]['contact'], reply_markup=get_user_contacts(user_lang))
     await state.set_state(IndividualRegisterState.contact)
 
@@ -200,29 +227,61 @@ async def contact(message: Message, state: FSMContext):
     data['telegram_id'] = message.from_user.id
     data['username'] = message.from_user.username
     data['tg_username'] = f"https://t.me/{message.from_user.username}"
+    data['user_lang'] = user_lang
     await create_user_db(data)
     await message.answer(text=default_languages[user_lang]['successful_registration'],
                          reply_markup=get_main_menu(user_lang))
 
+    await state.clear()
+
+
+@dp.message(F.text.in_(["↩️ Akkauntdan chiqish", "↩️ Выйти из аккаунта"]))
+async def logout(message: Message):
+    user_lang = user_languages[message.from_user.id]
+    local_user.pop(message.from_user.id)
+    await message.answer(
+        text=default_languages[user_lang]['exit'],
+        reply_markup=get_registration_and_login_keyboard(user_lang)
+    )
+
 
 @dp.message(F.text.in_(["⚙️ Настройки", "⚙️ Sozlamalar"]))
 async def settings(message: Message):
-    await message.answer(text="Settings logikasi")
+    user_lang = user_languages[message.from_user.id]
+    await message.answer(text=default_languages[user_lang]['select_language'], reply_markup=get_languages("setLang"))
+
+
+@dp.callback_query(F.data.startswith("setLang"))
+async def change_language(call: CallbackQuery):
+    user_lang = call.data.split("_")[1]
+    user_languages[call.from_user.id] = user_lang
+    await call.message.answer(text=default_languages[user_lang]['successful_changed'],
+                              reply_markup=get_main_menu(user_lang))
 
 
 @dp.message(F.text.in_(["📲 Biz bilan bog'lanish", "📲 Связаться с нами"]))
 async def contact_us(message: Message):
-    await message.answer(text="Biz bilan bog'lanish logikasi")
+    contacts = await get_company_contacts()
+    user_lang = user_languages[message.from_user.id]
+    await message.answer(
+        text=default_languages[user_lang]['contact_us_message'].format(
+            contacts.address, contacts.phone_number1, contacts.phone_number2, contacts.work_time), )
 
 
 @dp.message(F.text.in_(["📦 Mening buyurtmalarim", "📦 Мои заказы"]))
-async def get_my_orders(message: Message):
-    await message.answer(text='Mening buyurtmalarim logikasi')
+async def get_orders(message: Message):
+    phone_number = local_user[message.from_user.id]
+    user_lang = user_languages[message.from_user.id]
+    my_orders = await get_my_orders(phone_number)
+    msg = ""
+    for order in my_orders:
+        msg += f"{order_text[user_lang].format(order.order_number, order.status)}\n"
+        msg += "----------------------------\n"
+    await message.answer(text=f"{default_languages[user_lang]['order']}\n {msg}")
 
 
 @dp.message(F.func(lambda msg: msg.web_app_data.data if msg.web_app_data else None))
 async def get_btn(msg: Message):
-    print(msg.chat.full_name, msg.chat.username)
     text = msg.web_app_data.data
     product_data = text.split("|")
     products = {}
@@ -263,5 +322,4 @@ async def pre_checkout(query: PreCheckoutQuery):
 
 @dp.message(F.func(lambda msg: msg.successful_payment if msg.successful_payment else None))
 async def successful_payment(msg: Message):
-    print(msg.successful_payment)
     await msg.answer("To'lov uchun raxmat!")

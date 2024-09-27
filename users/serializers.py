@@ -1,15 +1,16 @@
 from django.contrib.auth.hashers import check_password
-from django.db.models import Q
 from rest_framework import serializers
 from users.models import CustomUser
-
+from django.utils.translation import gettext_lazy as _
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     user_type = serializers.ChoiceField(choices=CustomUser.UserType)
+    phone_number = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'full_name', 'username', 'password', 'email', 'user_type', 'company_name')
+        fields = ('id', 'full_name', 'username','phone_number', 'password', 'email', 'user_type', 'company_name')
         read_only_fields = ('id',)
 
     def validate(self, attrs):
@@ -21,26 +22,28 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
-    username = serializers.CharField()
+    phone_number = serializers.CharField()
     password = serializers.CharField()
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'username', 'password')
+        fields = ('id', 'phone_number', 'password')
 
     def validate(self, attrs):
-        username = attrs.get('username')
+        phone_number = attrs.get('phone_number')
         password = attrs.get('password')
-        if username and password:
-            user = CustomUser.objects.filter(Q(username=username) |
-                                             Q(email=username)).first()
+        if phone_number and password:
+            try:
+                user = CustomUser.objects.filter(phone_number=phone_number).last()
+            except CustomUser.DoesNotExist:
+                raise serializers.ValidationError(_("Invalid phone number or password"))
             if user and check_password(password, user.password):
                 return user
 
         else:
-            msg = "Должно включать 'username_or_email' и 'password'"
+            msg = _("You must provide a phone number and password.")
             raise serializers.ValidationError(msg, code='authorization')
-        msg = "Неверное имя пользователя или пароль"
+        msg = _("Incorrect phone number or password")
         raise serializers.ValidationError(msg, code='authorization')
 
 
