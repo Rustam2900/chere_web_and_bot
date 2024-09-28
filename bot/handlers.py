@@ -24,6 +24,10 @@ dp = Dispatcher()
 bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 
+@dp.message()
+async def get_image(msg: Message):
+    await msg.answer(msg.photo[-1].file_id)
+
 @dp.message(CommandStart())
 async def welcome(message: Message):
     user_lang = user_languages.get(message.from_user.id, None)
@@ -283,38 +287,40 @@ async def get_orders(message: Message):
 
 @dp.message(F.func(lambda msg: msg.web_app_data.data if msg.web_app_data else None))
 async def get_btn(msg: Message):
-    text = msg.web_app_data.data
-    product_data = text.split("|")
-    products = {}
-    for i in range(len(product_data)):
-        if len(product_data[i].split("/")) >= 3:
-            title = product_data[i].split('/')[0]
-            price = product_data[i].split('/')[1]
-            quantity = product_data[i].split('/')[2]
-            product = {
-                "title": title,
-                "price": int(price),
-                "quantity": int(quantity)
-            }
-            products[i] = product
-    await bot.send_invoice(
-        chat_id=msg.chat.id,
-        title="Оплата",
-        need_name=True,
-        need_phone_number=True,
-        description="Оплата через Telegram bot",
-        provider_token=PROVIDER_TOKEN,
-        currency="UZS",
-        payload="Ichki malumot",
-        prices=[LabeledPrice(label=f"{product['title']}({product['quantity']})",
-                             amount=(product['price'] * product['quantity']) * 100)
-                for product in products.values()],
-
-        max_tip_amount=50000000,  # Chayeviy
-        suggested_tip_amounts=[100000, 300000, 500000, 600000],  # Chayeviy
-        need_shipping_address=True,
-
-    )
+    print(msg.from_user)
+    print(msg.web_app_data.data)
+    # text = msg.web_app_data.data
+    # product_data = text.split("|")
+    # products = {}
+    # for i in range(len(product_data)):
+    #     if len(product_data[i].split("/")) >= 3:
+    #         title = product_data[i].split('/')[0]
+    #         price = product_data[i].split('/')[1]
+    #         quantity = product_data[i].split('/')[2]
+    #         product = {
+    #             "title": title,
+    #             "price": int(price),
+    #             "quantity": int(quantity)
+    #         }
+    #         products[i] = product
+    # await bot.send_invoice(
+    #     chat_id=msg.chat.id,
+    #     title="Оплата",
+    #     need_name=True,
+    #     need_phone_number=True,
+    #     description="Оплата через Telegram bot",
+    #     provider_token=PROVIDER_TOKEN,
+    #     currency="UZS",
+    #     payload="Ichki malumot",
+    #     prices=[LabeledPrice(label=f"{product['title']}({product['quantity']})",
+    #                          amount=(product['price'] * product['quantity']) * 100)
+    #             for product in products.values()],
+    #
+    #     max_tip_amount=50000000,  # Chayeviy
+    #     suggested_tip_amounts=[100000, 300000, 500000, 600000],  # Chayeviy
+    #     need_shipping_address=True,
+    #
+    # )
 
 
 @dp.pre_checkout_query()

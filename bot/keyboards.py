@@ -1,7 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 from bot.utils import default_languages
 
-web_app = WebAppInfo(url='https://bunyodnaimov.github.io/modul_11.github.io/')
+# web_app = WebAppInfo(url='https://bunyodnaimov.github.io/modul_11.github.io/')
+web_app = WebAppInfo(url='https://chere-bot-test.vercel.app/ru')
 
 
 def cancel_button():

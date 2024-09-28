@@ -11,8 +11,7 @@ class BannerListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Banner
-        exclude = ("id",)
-        read_only_fields = ("title", "subtitle", "bg_image")
+        fields = ("id", "title", "subtitle", "bg_image")
 
 
 class AboutUsGallerySerializer(serializers.ModelSerializer):
@@ -37,10 +36,10 @@ class AboutUsHomeSerializer(serializers.ModelSerializer):
 
 class AboutUsSerializer(serializers.ModelSerializer):
     galleries = serializers.SerializerMethodField()
-
+    video = MediaURLSerializer()
     class Meta:
         model = AboutUs
-        fields = ("desc", "video", "galleries")
+        fields = ("id", "desc", "video", "galleries")
 
     @extend_schema_field(OpenApiTypes.BINARY)
     def get_galleries(self, obj):

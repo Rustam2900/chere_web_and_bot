@@ -1,4 +1,4 @@
-from modeltranslation.translator import TranslationOptions, register, translator
+from modeltranslation.translator import TranslationOptions, register
 
 from .models import Product
 @register(Product)
