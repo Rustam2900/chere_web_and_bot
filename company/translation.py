@@ -10,3 +10,7 @@ class AboutUsTranslationOptions(TranslationOptions):
 @register(Banner)
 class BannerTranslationOptions(TranslationOptions):
     fields = ('title', 'subtitle')
+
+@register(Contacts)
+class ContactsTranslationOptions(TranslationOptions):
+    fields = ('address',)
