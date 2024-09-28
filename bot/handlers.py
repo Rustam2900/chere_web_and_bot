@@ -24,10 +24,6 @@ dp = Dispatcher()
 bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 
-@dp.message()
-async def get_image(msg: Message):
-    await msg.answer(msg.photo[-1].file_id)
-
 @dp.message(CommandStart())
 async def welcome(message: Message):
     user_lang = user_languages.get(message.from_user.id, None)
