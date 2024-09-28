@@ -7,7 +7,7 @@ import asyncio
 # from django.conf import settings
 from django.core.management import BaseCommand
 
-from bot.management.commands.commands import commands
+from .commands import commands
 
 
 
