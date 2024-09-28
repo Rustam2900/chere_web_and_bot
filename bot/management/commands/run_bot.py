@@ -7,8 +7,7 @@ import asyncio
 # from django.conf import settings
 from django.core.management import BaseCommand
 
-from .commands import commands
-
+from bot.management.commands.commands import commands
 
 
 async def main():
