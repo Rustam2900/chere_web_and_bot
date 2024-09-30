@@ -2,8 +2,6 @@ all_languages = ['ru', 'uz']
 
 message_history = {}
 
-
-
 default_languages = {
     "language_not_found": "Siz toʻgʻri tilni tanlamadingiz!\n"
                           "Вы не выбрали правильный язык!",
@@ -15,9 +13,9 @@ default_languages = {
     "uz": {
         "enter_number": "Faqat raqam kiriting!",
         "order_address": "Iltimos, manzilingizni kiriting:",
-        "reminder_days":"Keyingi buyurtmani qachon eslatish kerak (kun)",
-        "order_created":"Buyurtma yaratildi\nBuyurtma raqami: {}",
-        "order_not_created":"Buyurtma yaratilmadi!",
+        "reminder_days": "Keyingi buyurtmani qachon eslatish kerak (kun)",
+        "order_created": "Buyurtma yaratildi",
+        "order_not_created": "Buyurtma yaratilmadi!",
         "order_not_found": "Buyurtma topilmadi!",
         "order": "Buyurtmalarim",
         "full_name": "To'liq ismingizni kiriting",
@@ -59,7 +57,7 @@ default_languages = {
         "enter_number": "Введите только число!",
         "order_address": "Пожалуйста, укажите ваш адрес:",
         "reminder_days": "Когда напомнить о следующем заказе (день)",
-        "order_created":"Заказ создан\nНомер заказа: {}",
+        "order_created": "Заказ создан",
         "order_not_created": "Заказ не создан!",
         "order_not_found": "Заказ не найден!",
         "order": "Мои заказы",

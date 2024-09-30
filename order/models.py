@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from phonenumber_field.modelfields import PhoneNumberField
-
+from users.validators import phone_number_validator
 
 class CartItem(models.Model):
     user = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, related_name='cart_items')
@@ -22,7 +21,7 @@ class Order(models.Model):
     address = models.CharField(_('address'), max_length=255)
     latitude = models.DecimalField(_('latitude'), max_digits=10, decimal_places=8, blank=True, null=True)
     longitude = models.DecimalField(_('longitude'), max_digits=11, decimal_places=8, blank=True, null=True)
-    phone_number = PhoneNumberField(_('Phone number'), max_length=20)
+    phone_number = models.CharField(_('Phone number'), max_length=20, validators=[phone_number_validator])
     total_price = models.DecimalField(_("total price"), decimal_places=2, max_digits=10)
     order_number = models.CharField(_("order number"),max_length=25, blank=True, null=True, unique=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)

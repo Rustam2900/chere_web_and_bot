@@ -1,7 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from django.db import models
-from phonenumber_field.modelfields import PhoneNumberField
-
+from users.validators import phone_number_validator
 
 class Banner(models.Model):
     title = models.CharField(_('title'), max_length=255)
@@ -42,8 +41,8 @@ class AboutUsGallery(models.Model):
 
 class Contacts(models.Model):
     address = models.TextField(_('address'))
-    phone_number1 = PhoneNumberField(_('phone number1'), max_length=20)
-    phone_number2 = PhoneNumberField(_('phone number2'), max_length=20)
+    phone_number1 = models.CharField(_('phone number1'), max_length=20, validators=[phone_number_validator])
+    phone_number2 = models.CharField(_('phone number2'), max_length=20, validators=[phone_number_validator])
     work_time = models.CharField(_('work time'), max_length=255)
 
     def __str__(self):
@@ -56,7 +55,7 @@ class Contacts(models.Model):
 
 class ContactWithUs(models.Model):
     full_name = models.CharField(_('full name'), max_length=255)
-    phone_number = PhoneNumberField(_('phone number'))
+    phone_number = models.CharField(_('phone number'), validators=[phone_number_validator], max_length=20)
     subject = models.CharField(_('subject'), max_length=255)
     message = models.TextField(_('message'))
 

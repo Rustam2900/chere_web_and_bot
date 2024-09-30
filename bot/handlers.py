@@ -11,7 +11,7 @@ from pyexpat.errors import messages
 from rest_framework_simplejwt.utils import aware_utcnow
 
 from bot.db import create_user_db, get_company_contacts, get_my_orders, login_user, create_item_db, \
-    create_order_from_cart
+    create_order_from_cart, create_order_db
 from bot.keyboards import get_languages, get_user_types, get_registration_keyboard, get_user_contacts, \
     get_main_menu, get_confirm_button, get_registration_and_login_keyboard, inline_create_order
 from bot.states import LegalRegisterState, IndividualRegisterState, LoginStates, LegalAddressReminderState, \
@@ -19,13 +19,17 @@ from bot.states import LegalRegisterState, IndividualRegisterState, LoginStates,
 from bot.utils import default_languages, user_languages, introduction_template, calculate_total_water, \
     offer_text, order_text, local_user, fix_phone, message_history
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from aiogram.client.default import DefaultBotProperties
+from asgiref.sync import sync_to_async
+from order.models import Order
+from users.models import CustomUser
 
 env = environ.Env(
     DEBUG=(bool, False)
 )
 environ.Env.read_env(".env")
-PROVIDER_TOKEN = env.str('PROVIDER_TOKEN')
+# PROVIDER_TOKEN = env.str('PROVIDER_TOKEN')
 dp = Dispatcher()
 bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
@@ -36,7 +40,7 @@ async def welcome(message: Message):
     user_phone = local_user.get(message.from_user.id, None)
     if user_phone and user_lang:
         await message.answer_photo(
-            photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
+            photo="AgACAgIAAxkBAAISkGb30I5XavvJQVZN0LW83KGEUrXLAAKW6zEbXqG4SwJ-CmYiLzCSAQADAgADeQADNgQ",
             caption=introduction_template[user_lang], reply_markup=get_main_menu(user_lang))
     else:
         msg = default_languages['welcome_message']
@@ -59,11 +63,11 @@ async def get_query_languages(call: CallbackQuery):
     user = local_user.get(user_id, None)
     if user is None:
         await call.message.answer_photo(
-            photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
+            photo="AgACAgIAAxkBAAISkGb30I5XavvJQVZN0LW83KGEUrXLAAKW6zEbXqG4SwJ-CmYiLzCSAQADAgADeQADNgQ",
             caption=introduction_template[user_lang], reply_markup=get_registration_and_login_keyboard(user_lang))
     else:
         await call.message.answer_photo(
-            photo="AgACAgIAAxkBAANIZtweuk4Z4BlQtDdS8jFgbuw6UBAAAvnaMRs33OBK3nbNtZNsdvMBAAMCAAN5AAM2BA",
+            photo="AgACAgIAAxkBAAISkGb30I5XavvJQVZN0LW83KGEUrXLAAKW6zEbXqG4SwJ-CmYiLzCSAQADAgADeQADNgQ",
             caption=introduction_template[user_lang], reply_markup=get_main_menu(user_lang))
 
 
@@ -359,6 +363,7 @@ async def ask_for_location(message: Message, state: FSMContext):
     await message.answer(text=default_languages[user_lang]['order_address'])
     await state.set_state(LegalAddressReminderState.order_address)
 
+
 @dp.message(LegalAddressReminderState.order_address)
 async def get_legal_order_address(msg: Message, state: FSMContext):
     user_lang = user_languages[msg.from_user.id]
@@ -366,13 +371,39 @@ async def get_legal_order_address(msg: Message, state: FSMContext):
     await msg.answer(text=default_languages[user_lang]['reminder_days'])
     await state.set_state(LegalAddressReminderState.reminder_days)
 
+
 @dp.message(LegalAddressReminderState.reminder_days)
 async def get_reminder_days(msg: Message, state: FSMContext):
     user_id = msg.from_user.id
+    user_lang = user_languages[msg.from_user.id]
+
+    await state.update_data(reminder_days=msg.text)
+
+    state_data = await state.get_data()
+
     total_water = message_history.pop(user_id, None)
     product_price = 15000
+    total_price = total_water * product_price
 
+    try:
+        user = await CustomUser.objects.aget(telegram_id=msg.from_user.id)
+        phone_number = user.phone_number
+        await sync_to_async(user.save)()
+    except ObjectDoesNotExist:
+        await message.answer("Foydalanuvchi ma'lumotlar bazasida topilmadi.")
+        return
 
+    order_data = {
+        "user": user,
+        "phone_number": phone_number,
+        "address": state_data['order_address'],
+        "total_price": total_price
+    }
+
+    await create_order_db(order_data, state_data['reminder_days'], user_id)
+    await msg.answer(text=default_languages[user_lang]['order_created'], reply_markup=get_main_menu(user_lang))
+
+    await state.clear()
 
 
 @dp.message(F.text.in_(["❌ Отменить", "❌ Bekor qilish"]))
@@ -380,3 +411,21 @@ async def order_cancel(message: Message):
     user_lang = user_languages[message.from_user.id]
     await message.answer(text=default_languages[user_lang]['order_not_created'],
                          reply_markup=get_main_menu(user_lang))
+
+async def schedule_reminder(telegram_id, delay):
+
+    await asyncio.sleep(delay)
+    await bot.send_message(chat_id=telegram_id, text="Sizning buyurtmangiz uchun eslatma: Vaqt tugadi!")
+
+async def create_order_db_(order_data):
+    order = await sync_to_async(Order.objects.create)(**order_data)
+
+    reminder_days = order.user.reminder_days
+
+    if reminder_days:
+        reminder_date = order.created_at + timedelta(days=reminder_days)
+
+        time_until_reminder = (reminder_date - datetime.now()).total_seconds()
+
+        asyncio.create_task(schedule_reminder(order.user.telegram_id, time_until_reminder))
+

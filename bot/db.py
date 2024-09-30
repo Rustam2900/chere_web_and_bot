@@ -49,54 +49,68 @@ def get_company_contacts():
 def get_my_orders(phone_number):
     return list(Order.objects.all().filter(phone_number=phone_number))
 
+
 @sync_to_async
 def create_item_db(t_id, p_id, p_quantity):
-    user = CustomUser.objects.get(telegram_id=t_id)  # Получаем пользователя
-    product = Product.objects.get(id=p_id)  # Получаем экземпляр продукта по его ID
+    user = CustomUser.objects.get(telegram_id=t_id)
+    product = Product.objects.get(id=p_id)
 
-    # Проверяем, что пользователь и продукт существуют
     if user and product:
         data = {
             "user": user,
-            "product": product,  # Используем экземпляр продукта
+            "product": product,
             "quantity": p_quantity
         }
-        item = CartItem.objects.create(**data)  # Создаем элемент корзины
+        item = CartItem.objects.create(**data)
         return item
     else:
-        return None  # Возвращаем None, если пользователь или продукт не найдены
+        return None
 
 
 @sync_to_async
 def create_order_from_cart(t_id, address, reminder_days):
     try:
-        # Получаем пользователя
         user = CustomUser.objects.get(telegram_id=t_id)
 
-        # Получаем элементы корзины пользователя
         cart_items = CartItem.objects.filter(user=user, is_visible=True)
 
-        # Вычисляем общую стоимость
         total_price = sum(item.product.price * item.quantity for item in cart_items)
 
-        # Создаем заказ
         order = Order.objects.create(
             user=user,
             address=address,
             phone_number=user.phone_number,
             total_price=total_price,
-            status=Order.OrderStatus.CREATED  # Устанавливаем статус заказа
+            status=Order.OrderStatus.CREATED
         )
         user.reminder_days = reminder_days
         user.save()
 
-        # Здесь можно добавить логику для связывания заказанных товаров с заказом, если нужно
         for item in cart_items:
-            item.order = order  # Присваиваем заказ элементам корзины
-            item.is_visible = False  # Помечаем элемент как невидимый, если это нужно
-            item.save()  # Сохраняем изменения
+            item.order = order
+            item.is_visible = False
+            item.save()
 
         return order
     except CustomUser.DoesNotExist:
         print("Пользователь не найден.")
         return None
+
+
+@sync_to_async
+def create_order_db(order_data, reminder_days, user_id):
+    try:
+        user = CustomUser.objects.get(telegram_id=user_id)
+        new_order = Order.objects.create(
+            user=order_data['user'],
+            phone_number=order_data['phone_number'],
+            address=order_data['address'],
+            total_price=order_data['total_price'],
+            status=Order.OrderStatus.CREATED
+        )
+        user.reminder_days = reminder_days
+        user.save()
+        return new_order
+    except IntegrityError:
+        raise Exception("Order with the same order number already exists")
+
