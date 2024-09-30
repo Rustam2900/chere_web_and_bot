@@ -1,5 +1,9 @@
 all_languages = ['ru', 'uz']
 
+message_history = {}
+
+
+
 default_languages = {
     "language_not_found": "Siz toʻgʻri tilni tanlamadingiz!\n"
                           "Вы не выбрали правильный язык!",
@@ -9,6 +13,12 @@ default_languages = {
                        "Выберите один из языков ниже!",
 
     "uz": {
+        "enter_number": "Faqat raqam kiriting!",
+        "order_address": "Iltimos, manzilingizni kiriting:",
+        "reminder_days":"Keyingi buyurtmani qachon eslatish kerak (kun)",
+        "order_created":"Buyurtma yaratildi\nBuyurtma raqami: {}",
+        "order_not_created":"Buyurtma yaratilmadi!",
+        "order_not_found": "Buyurtma topilmadi!",
         "order": "Buyurtmalarim",
         "full_name": "To'liq ismingizni kiriting",
         "individual": "Jismoniy shaxs",
@@ -23,8 +33,8 @@ default_languages = {
         "employee_name": "Kampaniya xodimi ism familiyasini kiriting",
         "employee_count": "Kampaniyada ishchilar sonini kiriting",
         "company_contact": "Kampaniya telefon raqamini kiriting",
-        "working_days": "Kampaniyadagi ish kuni sonini kiriting",
-        "duration_days": "Qancha vaqt mobaynida yetkazib berib turishimizni hohlaysiz?",
+        "working_days": "Kampaniyadagi ish kuni sonini kiriting (haftasiga)",
+        "duration_days": "Qancha vaqt mobaynida yetkazib berib turishimizni hohlaysiz? (necha kun)",
         "successful_registration": "Muvaffaqiyatli ro'yxatdan o'tildi",
         "successful_login": "Muvaffaqiyatli kirish",
         "user_not_found": "Foydalanuvchi topilmadi",
@@ -35,8 +45,8 @@ default_languages = {
         "settings": "⚙️ Sozlamalar",
         "contact_us": "📲 Biz bilan bog'lanish",
         "my_orders": "📦 Mening buyurtmalarim",
-        "create_order": "Buyurtma berish",
-        "cancel": "Bekor qilish",
+        "create_order": "✅ Buyurtma berish",
+        "cancel": "❌ Bekor qilish",
         "select_language": "Tilni tanlang!",
         "successful_changed": "Muvaffaqiyatli o'zgartirildi",
         "contact_us_message": "Bizning manzil:\n{}\n\n"
@@ -46,6 +56,12 @@ default_languages = {
     },
 
     "ru": {
+        "enter_number": "Введите только число!",
+        "order_address": "Пожалуйста, укажите ваш адрес:",
+        "reminder_days": "Когда напомнить о следующем заказе (день)",
+        "order_created":"Заказ создан\nНомер заказа: {}",
+        "order_not_created": "Заказ не создан!",
+        "order_not_found": "Заказ не найден!",
         "order": "Мои заказы",
         "full_name": "Введите свое полное имя",
         "individual": "Физическое лицо",
@@ -60,8 +76,8 @@ default_languages = {
         "employee_name": "Введите имя и фамилию сотрудника кампании.",
         "employee_count": "Введите количество работников в кампании.",
         "company_contact": "Введите номер телефона кампании",
-        "working_days": "Введите количество рабочих дней в кампании",
-        "duration_days": "Как долго вы хотите, чтобы мы доставили?",
+        "working_days": "Введите количество рабочих дней в кампании (в неделю)",
+        "duration_days": "Как долго вы хотите, чтобы мы доставили? (сколько дней)",
         "successful_registration": "Успешная регистрация",
         "successful_login": "Успешный вход",
         "user_not_found": "Пользователь не найден",
@@ -72,8 +88,8 @@ default_languages = {
         "settings": "⚙️ Настройки",
         "contact_us": "📲 Связаться с нами",
         "my_orders": "📦 Мои заказы",
-        "create_order": "Сделать заказ",
-        "cancel": "Отменить",
+        "create_order": "✅ Сделать заказ",
+        "cancel": "❌ Отменить",
         "select_language": "Выберите язык!",
         "successful_changed": "Успешно изменено",
         "contact_us_message": "Наш адрес:\n{}\n\n"
@@ -84,7 +100,6 @@ default_languages = {
 
 user_languages = {}
 local_user = {}
-
 
 introduction_template = {
     'ru':
@@ -158,12 +173,18 @@ offer_text = {
 }
 
 order_text = {
-    "uz":"Buyurtma raqami {} \n Buyurtma holati {}",
+    "uz": "Buyurtma raqami {} \n Buyurtma holati {}",
     "ru": "Номер заказа {} \n Статус заказа {}"
-    }
+}
 
 
 def calculate_total_water(week_days, employee_count, durations_days):
-    available_days = int(durations_days) // 7 *  int(week_days) + int(durations_days) % 7
+    available_days = int(durations_days) // 7 * int(week_days) + int(durations_days) % 7
     total_water = available_days * int(employee_count) * 2
     return total_water // 20
+
+
+def fix_phone(phone):
+    if "+" not in phone:
+        return f"+{phone}"
+    return phone

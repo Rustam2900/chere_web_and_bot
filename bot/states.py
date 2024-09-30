@@ -17,3 +17,11 @@ class IndividualRegisterState(StatesGroup):
 class LoginStates(StatesGroup):
     phone = State()
     password = State()
+
+class LegalAddressReminderState(StatesGroup):
+    order_address = State()
+    reminder_days = State()
+
+class IndividualAddressReminderState(StatesGroup):
+    order_address = State()
+    reminder_days = State()

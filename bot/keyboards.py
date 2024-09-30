@@ -75,3 +75,9 @@ def get_confirm_button(user_lang):
      KeyboardButton(text=default_languages[user_lang]['cancel'])],
     ], resize_keyboard=True)
     return button
+
+def inline_create_order(u_lang, c_data):
+    key = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=default_languages[u_lang]['create_order'], callback_data=c_data)],
+    ])
+    return key

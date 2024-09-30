@@ -12,6 +12,7 @@ from bot.management.commands.commands import commands
 
 async def main():
     print("Starting bot...")
+
     from bot.handlers import dp
     from bot.handlers import bot
     await bot.set_my_commands(commands=commands)

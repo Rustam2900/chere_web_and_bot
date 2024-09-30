@@ -15,6 +15,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(_("email address"), blank=True, null=True)
     phone_number = PhoneNumberField(_("phone number"), blank=True, unique=True)
     password = models.CharField(_("password"), blank=True, max_length=255)
+    reminder_days = models.PositiveIntegerField(_("reminder days"), blank=True, null=True)
     user_type = models.CharField(
         _("user type"), choices=UserType.choices, default=UserType.PRIVATE, blank=True, max_length=255)
     user_lang = models.CharField(_("user language"), blank=True, null=True, max_length=10)
@@ -22,6 +23,7 @@ class CustomUser(AbstractUser):
     tg_username = models.CharField(
         _("telegram username"), blank=True, null=True, max_length=255, unique=True)
     company_name = models.CharField(_("company name"), blank=True, null=True, max_length=255)
+
 
     def __str__(self):
         return self.username
