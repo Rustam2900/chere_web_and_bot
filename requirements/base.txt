@@ -1,0 +1,15 @@
+django==5.1
+python-environ==0.4.54
+psycopg2-binary==2.9.9
+django-phonenumber-field==8.0.0
+django_phonenumbers==1.0.1
+djangorestframework==3.15.2
+drf-spectacular==0.27.2
+djangorestframework-simplejwt==5.3.1
+django-modeltranslation==0.19.7
+django-rosetta==0.10.0
+pyTelegramBotAPI==4.22.1
+aiogram==3.4.1
+
+# botda bazani async ishlatish uchun
+asyncpg==0.29.0
