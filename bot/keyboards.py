@@ -80,3 +80,12 @@ def inline_create_order(u_lang, c_data):
         [InlineKeyboardButton(text=default_languages[u_lang]['create_order'], callback_data=c_data)],
     ])
     return key
+
+def location_user(u_lang):
+    kb = [
+        [KeyboardButton(text=default_languages[u_lang]['order_address'], request_location=True)
+         ]
+    ]
+    keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+    return keyboard
+

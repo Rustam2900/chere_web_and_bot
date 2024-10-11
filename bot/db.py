@@ -7,6 +7,8 @@ from order.models import Order, CartItem
 from product.models import Product
 from users.models import CustomUser
 
+from django.db.utils import IntegrityError
+
 
 @sync_to_async
 def create_user_db(user_data):
@@ -101,16 +103,23 @@ def create_order_from_cart(t_id, address, reminder_days):
 def create_order_db(order_data, reminder_days, user_id):
     try:
         user = CustomUser.objects.get(telegram_id=user_id)
+
+        # Buyurtma raqami mavjudligini tekshirish
+        order_number = order_data.get('order_number')
+        if Order.objects.filter(order_number=order_number).exists():
+            raise Exception("Order with the same order number already exists")
+
         new_order = Order.objects.create(
-            user=order_data['user'],
+            user=user,
             phone_number=order_data['phone_number'],
             address=order_data['address'],
             total_price=order_data['total_price'],
-            status=Order.OrderStatus.CREATED
+            status=Order.OrderStatus.CREATED,
+            order_number=order_number  # Buyurtma raqamini ham qo'shamiz
         )
+
         user.reminder_days = reminder_days
         user.save()
         return new_order
-    except IntegrityError:
-        raise Exception("Order with the same order number already exists")
-
+    except IntegrityError as e:
+        raise Exception(f"Database error: {str(e)}")

@@ -11,8 +11,13 @@ default_languages = {
                        "Выберите один из языков ниже!",
 
     "uz": {
+        "status": "status",
+        "address": "manzil",
+        "order_list": "buyurtmalar",
+        "price": "narxi",
+        "order_number": "order number",
         "enter_number": "Faqat raqam kiriting!",
-        "order_address": "Iltimos, manzilingizni kiriting:",
+        "order_address": "Iltimos, manzilingizni :",
         "reminder_days": "Keyingi buyurtmani qachon eslatish kerak (kun)",
         "order_created": "Buyurtma yaratildi",
         "order_not_created": "Buyurtma yaratilmadi!",
@@ -54,6 +59,11 @@ default_languages = {
     },
 
     "ru": {
+        "status": "status",
+        "address": "адрес",
+        "order_list": "orderсписок заказов",
+        "price": "цена",
+        "order_number": "номер заказа",
         "enter_number": "Введите только число!",
         "order_address": "Пожалуйста, укажите ваш адрес:",
         "reminder_days": "Когда напомнить о следующем заказе (день)",

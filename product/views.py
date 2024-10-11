@@ -26,3 +26,6 @@ class DiscountListView(ListAPIView):
     queryset = Action.objects.all()
     serializer_class = ActionSerializer
     throttle_classes = []
+
+
+

@@ -10,10 +10,12 @@ from django.contrib.auth.hashers import make_password
 from pyexpat.errors import messages
 from rest_framework_simplejwt.utils import aware_utcnow
 
+import requests
+
 from bot.db import create_user_db, get_company_contacts, get_my_orders, login_user, create_item_db, \
     create_order_from_cart, create_order_db
 from bot.keyboards import get_languages, get_user_types, get_registration_keyboard, get_user_contacts, \
-    get_main_menu, get_confirm_button, get_registration_and_login_keyboard, inline_create_order
+    get_main_menu, get_confirm_button, get_registration_and_login_keyboard, inline_create_order, location_user
 from bot.states import LegalRegisterState, IndividualRegisterState, LoginStates, LegalAddressReminderState, \
     IndividualAddressReminderState
 from bot.utils import default_languages, user_languages, introduction_template, calculate_total_water, \
@@ -360,16 +362,51 @@ async def get_reminder_days(msg: Message, state: FSMContext):
 @dp.message(F.text.in_(["✅ Buyurtma berish", "✅ Сделать заказ"]))
 async def ask_for_location(message: Message, state: FSMContext):
     user_lang = user_languages[message.from_user.id]
-    await message.answer(text=default_languages[user_lang]['order_address'])
+
+    # First send the message with the location request keyboard
+    await message.answer(
+        text=default_languages[user_lang]['order_address'],
+        reply_markup=location_user(user_lang)
+    )
+
+    # Then set the state without the reply_markup argument
     await state.set_state(LegalAddressReminderState.order_address)
 
 
 @dp.message(LegalAddressReminderState.order_address)
 async def get_legal_order_address(msg: Message, state: FSMContext):
     user_lang = user_languages[msg.from_user.id]
-    await state.update_data(order_address=msg.text)
+
+    if msg.location:  # Geolokatsiya mavjudligini tekshiramiz
+        latitude = msg.location.latitude
+        longitude = msg.location.longitude
+        address = await sync_to_async(get_address)(latitude, longitude)
+        if not address:
+            await msg.answer("Manzilni topib bo'lmadi. Iltimos, qo'lda manzilni kiriting.")
+        else:
+            await state.update_data(order_address=address)  # Manzilni yangilaymiz
+    else:
+        await state.update_data(order_address=msg.text)  # Agar location yuborilmasa, qo'lda manzil
+
     await msg.answer(text=default_languages[user_lang]['reminder_days'])
     await state.set_state(LegalAddressReminderState.reminder_days)
+
+
+def get_address(latitude, longitude):
+    try:
+        response = requests.get(f'https://geocode.maps.co/reverse?lat={latitude}&lon={longitude}')
+        data = response.json()
+
+        if 'display_name' in data:
+            address = data['display_name']
+        else:
+            # Ma'lumotni to'g'ri olmagan bo'lsa
+            address = None
+
+        return address
+    except Exception as e:
+        print(f"Error in get_address: {str(e)}")  # Log qilish
+        return None
 
 
 @dp.message(LegalAddressReminderState.reminder_days)
@@ -378,7 +415,6 @@ async def get_reminder_days(msg: Message, state: FSMContext):
     user_lang = user_languages[msg.from_user.id]
 
     await state.update_data(reminder_days=msg.text)
-
     state_data = await state.get_data()
 
     total_water = message_history.pop(user_id, None)
@@ -390,16 +426,30 @@ async def get_reminder_days(msg: Message, state: FSMContext):
         phone_number = user.phone_number
         await sync_to_async(user.save)()
     except ObjectDoesNotExist:
-        await message.answer("Foydalanuvchi ma'lumotlar bazasida topilmadi.")
+        await msg.answer("Foydalanuvchi ma'lumotlar bazasida topilmadi.")
         return
 
+    # Latitude va Longitude orqali geolokatsiyani olish
+    location = msg.location
+    if location:
+        latitude = location.latitude
+        longitude = location.longitude
+        address = await sync_to_async(get_address)(latitude, longitude)
+        if not address:
+            await msg.answer("Manzilni topib bo'lmadi.")
+            return
+    else:
+        address = state_data['order_address']  # Geolokatsiya bo'lmasa, manzil state'dan olinadi
+
+    # Buyurtma ma'lumotlarini shakllantirish
     order_data = {
         "user": user,
         "phone_number": phone_number,
-        "address": state_data['order_address'],
+        "address": address,  # Olingan manzilni bu yerga kiritamiz
         "total_price": total_price
     }
 
+    # Buyurtmani yaratish
     await create_order_db(order_data, state_data['reminder_days'], user_id)
     await msg.answer(text=default_languages[user_lang]['order_created'], reply_markup=get_main_menu(user_lang))
 
@@ -412,10 +462,11 @@ async def order_cancel(message: Message):
     await message.answer(text=default_languages[user_lang]['order_not_created'],
                          reply_markup=get_main_menu(user_lang))
 
-async def schedule_reminder(telegram_id, delay):
 
+async def schedule_reminder(telegram_id, delay):
     await asyncio.sleep(delay)
     await bot.send_message(chat_id=telegram_id, text="Sizning buyurtmangiz uchun eslatma: Vaqt tugadi!")
+
 
 async def create_order_db_(order_data):
     order = await sync_to_async(Order.objects.create)(**order_data)
@@ -428,4 +479,3 @@ async def create_order_db_(order_data):
         time_until_reminder = (reminder_date - datetime.now()).total_seconds()
 
         asyncio.create_task(schedule_reminder(order.user.telegram_id, time_until_reminder))
-
