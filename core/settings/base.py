@@ -62,6 +62,7 @@ THIRD_PARTY_APPS = [
     'rest_framework_simplejwt',
     'rosetta',
     'aiogram',
+    "django_celery_beat",
 ]
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS
 
@@ -201,3 +202,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Bot
 BOT_TOKEN = env.str('BOT_TOKEN')
 
+# Celery Configuration Options
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TIMEZONE = "Asia/Tashkent"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_WORKER_HOSTNAME = '127.0.0.1'
+CELERY_IMPORTS = ("order.tasks", )
