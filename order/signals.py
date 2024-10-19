@@ -5,7 +5,7 @@ from django_celery_beat.models import ClockedSchedule, PeriodicTask, CrontabSche
 import random
 import string
 import json
-from datetime import datetime
+from django.utils import timezone
 
 
 @receiver(post_save, sender=Order)
@@ -20,24 +20,24 @@ def generate_order_number(sender, instance, created, **kwargs):
                 order_number = ''.join(random.choices(string.digits, k=8))
 
             instance.order_number = f'#{order_number}'
-            clocked_schedule = CrontabSchedule.objects.create(
-                hour=instance.user.reminder_days * 24,
-                minute=0,
-                day_of_week=0
-            )
-            cart_items = instance.cart_items.all()
-            text = "Products: "
-            for cart_item in cart_items:
-                text += f"{cart_item.product.title} - {cart_item.quantity}\n"
+        clocked_schedule = CrontabSchedule.objects.create(
+            # hour=instance.user.reminder_days * 24,
+            minute=instance.user.reminder_days,
+            # day_of_week=0
+        )
+        cart_items = instance.cart_items.all()
+        text = "Products: "
+        for cart_item in cart_items:
+            text += f"{cart_item.product.title} - {cart_item.quantity}\n"
 
-            text += f"Total price: {instance.total_price}"
-
-            PeriodicTask.objects.create(
-                name=f"Message is sending to Telegram Bot: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-                clocked=clocked_schedule,
-                task="msg_app.tasks.send_message_for_notify",
-                enabled=True,
-                one_off=True,
-                kwargs=json.dumps({"telegram_id": str(instance.user.telegram_id), "message": str(text)}),
-            )
-            instance.save()
+        text += f"Total price: {instance.total_price}"
+        print("timezone: ", timezone.now())
+        PeriodicTask.objects.create(
+            name=f"Message is sending to Telegram Bot: {timezone.now().strftime('%Y-%m-%d %H:%M')}",
+            crontab=clocked_schedule,
+            task="order.tasks.send_message_for_notify",
+            enabled=True,
+            one_off=True,
+            kwargs=json.dumps({"telegram_id": str(instance.user.telegram_id), "message": str(text)}),
+        )
+        instance.save()

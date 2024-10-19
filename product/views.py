@@ -1,9 +1,9 @@
 from drf_spectacular.utils import extend_schema, OpenApiParameter, extend_schema_view
-from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.throttling import UserRateThrottle
 
 from product.models import Product, WebOrder, Action
-from product.serializers import ProductHomeListSerializer, WebOrderSerializer, ProductListSerializer, ActionSerializer
+from product.serializers import ProductHomeListSerializer, WebOrderSerializer, ProductListSerializer, ActionSerializer, ActionProductSerializer
 
 
 class ProductHomeListView(ListAPIView):
@@ -29,3 +29,6 @@ class DiscountListView(ListAPIView):
 
 
 
+class ActionProductsAPIView(RetrieveAPIView):
+    queryset = Action.objects.all()
+    serializer_class = ActionProductSerializer

@@ -1,4 +1,5 @@
 from attr import attributes
+from django.db.models import Sum
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
@@ -41,7 +42,7 @@ class ActionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Action
-        fields = ("title", "desc", "image", "percentage")
+        fields = ("id", "title", "desc", "image", "percentage")
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -71,3 +72,18 @@ class ProductListSerializer(serializers.ModelSerializer):
         else:
             data["desc"] = f"{instance.desc[:20]} {instance.size}L"
         return data
+
+
+class ActionProductSerializer(serializers.ModelSerializer):
+    image = MediaURLSerializer(read_only=True)
+    products = ProductListSerializer(many=True, read_only=True)
+    total_price = serializers.SerializerMethodField()
+    class Meta:
+        model = Action
+        fields = ("title", "desc", "image", "percentage","products", "total_price")
+
+
+    def get_total_price(self, instance):
+        total_product_price = instance.products.aggregate(total_price=Sum('price'))['total_price']
+        discount_price = total_product_price - total_product_price * instance.percentage / 100
+        return discount_price
